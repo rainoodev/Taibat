@@ -623,10 +623,26 @@ let PRODUCTS = [];
 let activeCategory = "الكل";
 let searchQuery = "";
 let cart = []; // Array of { product, quantity }
+try {
+  const savedCart = localStorage.getItem("el_taibat_cart");
+  if (savedCart) {
+    cart = JSON.parse(savedCart);
+  }
+} catch (e) {
+  console.error("Failed to parse cart:", e);
+}
 let isCartOpen = false;
 let isFavOpen = false;
 let selectedProduct = null;
 let favorites = []; // Array of product ids
+try {
+  const savedFavs = localStorage.getItem("el_taibat_favorites");
+  if (savedFavs) {
+    favorites = JSON.parse(savedFavs);
+  }
+} catch (e) {
+  console.error("Failed to parse favorites:", e);
+}
 let isCartBouncing = false;
 let toastTimeout = null;
 let checkoutStep = "cart"; // "cart" | "form" | "success"
@@ -721,7 +737,7 @@ const toastText = document.getElementById("toast-text");
 // Footer brand click
 const brandLogo = document.getElementById("brand-logo");
 
-// --- NEW AUTH & ADMIN DOM ELEMENTS ---
+// --- NEW AUTH DOM ELEMENTS ---
 // Header Auth DOM
 const authLoginBtn = document.getElementById("auth-login-btn");
 const authUserMenu = document.getElementById("auth-user-menu");
@@ -729,7 +745,6 @@ const authUserBtn = document.getElementById("auth-user-btn");
 const authUserName = document.getElementById("auth-user-name");
 const authUserDropdown = document.getElementById("auth-user-dropdown");
 const btnViewHistory = document.getElementById("btn-view-history");
-const btnAdminDashboard = document.getElementById("btn-admin-dashboard");
 const btnLogout = document.getElementById("btn-logout");
 
 // Auth Modal DOM
@@ -763,19 +778,6 @@ const tabContentLocation = document.getElementById("tab-content-location");
 const tabContentContact = document.getElementById("tab-content-contact");
 const infoContactForm = document.getElementById("info-contact-form");
 
-// Admin Modal DOM
-const adminModal = document.getElementById("admin-modal");
-const adminModalOverlay = document.getElementById("admin-modal-overlay");
-const adminModalDialog = document.getElementById("admin-modal-dialog");
-const closeAdminModalBtn = document.getElementById("close-admin-modal-btn");
-const adminSubtabOrders = document.getElementById("admin-subtab-orders");
-const adminSubtabAddProduct = document.getElementById("admin-subtab-addproduct");
-const adminOrdersSection = document.getElementById("admin-orders-section");
-const adminAddProductSection = document.getElementById("admin-addproduct-section");
-const adminOrdersEmpty = document.getElementById("admin-orders-empty");
-const adminOrdersList = document.getElementById("admin-orders-list");
-const formAddProduct = document.getElementById("form-add-product");
-
 // --- SETTINGS DOM ELEMENTS ---
 const btnSettings = document.getElementById("btn-settings");
 const settingsModal = document.getElementById("settings-modal");
@@ -789,17 +791,300 @@ const settingsAddressInput = document.getElementById("settings-address-input");
 const langBtnAr = document.getElementById("lang-btn-ar");
 const langBtnEn = document.getElementById("lang-btn-en");
 
-// --- ADMIN PRODUCTS MANAGEMENT DOM ELEMENTS ---
-const adminSubtabProducts = document.getElementById("admin-subtab-products");
-const adminProductsSection = document.getElementById("admin-products-section");
-const adminProductsEmpty = document.getElementById("admin-products-empty");
-const adminProductsList = document.getElementById("admin-products-list");
-const btnUploadFile = document.getElementById("btn-upload-file");
-const prodImageFile = document.getElementById("prod-image-file");
-const uploadStatusText = document.getElementById("upload-status-text");
-
 // Language State
 let currentLang = localStorage.getItem("currentLang") || "ar";
+
+const PRODUCT_TRANSLATIONS = {
+  "p1": {
+    "name": "Classic Chocolate Box",
+    "description": "An elegant selection of fine chocolates, perfect for sharing or gifting.",
+    "ingredients": "Premium chocolate, salted caramel, Madagascar vanilla, toasted nuts."
+  },
+  "p2": {
+    "name": "French Macarons Duo",
+    "description": "Delicate and airy French macarons with a crisp shell and soft, chewy center.",
+    "ingredients": "Almond flour, egg whites, cane sugar, white chocolate, organic vanilla."
+  },
+  "p3": {
+    "name": "Pistachio Tartlet",
+    "description": "A crisp pastry crust filled with rich pistachio cream and topped with crushed nuts.",
+    "ingredients": "Pure butter, premium pistachios, whipped cream, citrus zest."
+  },
+  "p4": {
+    "name": "Fleur de Sel Truffles",
+    "description": "Luxurious chocolate truffles dusted with premium cocoa and finished with a touch of sea salt.",
+    "ingredients": "Dark chocolate, heavy cream, unsalted butter, sea salt."
+  },
+  "p5": {
+    "name": "Caramel Pecan Pralines",
+    "description": "Rich chocolate cups filled with smooth caramel and topped with a roasted pecan.",
+    "ingredients": "Milk chocolate, liquid caramel, fancy pecans, heavy cream."
+  },
+  "p6": {
+    "name": "Espresso Macarons",
+    "description": "Indulgent coffee-infused macarons with a velvety dark chocolate espresso ganache.",
+    "ingredients": "Almond flour, premium cocoa, dark chocolate, espresso roast."
+  },
+  "p7": {
+    "name": "Lemon Raspberry Tart",
+    "description": "A perfect balance of tangy lemon curd and fresh, sweet raspberries on a buttery crust.",
+    "ingredients": "Fresh lemon juice, ripe raspberries, farm eggs, creamery butter."
+  },
+  "p8": {
+    "name": "Musk Infused Baklava",
+    "description": "Crispy layers of golden pastry sheets, filled with premium nuts and scented with organic musk.",
+    "ingredients": "Phyllo pastry, clarified butter, premium pistachios, orange blossom water."
+  },
+  "p9": {
+    "name": "Velvety Chocolate Cake",
+    "description": "A rich, moist chocolate sponge layered with smooth fudge and Belgian chocolate shavings.",
+    "ingredients": "Unsweetened cocoa, heavy cream, pastry flour, organic eggs, natural vanilla."
+  },
+  "p10": {
+    "name": "Fresh Strawberry Cake",
+    "description": "Light and airy sponge cake layered with fresh whipped cream and sweet, juicy strawberries.",
+    "ingredients": "Cake flour, cane sugar, fresh local strawberries, heavy whipping cream."
+  },
+  "p11": {
+    "name": "Salted Caramel Pecan Tart",
+    "description": "A crispy shell generously loaded with buttery salted caramel and toasted pecans.",
+    "ingredients": "Farm butter, premium pecans, brown sugar, sea salt, pastry flour."
+  },
+  "p12": {
+    "name": "Tropical Fruit Tart",
+    "description": "A classic sweet tart filled with rich vanilla pastry cream and adorned with seasonal tropical fruits.",
+    "ingredients": "Custard cream, ripe kiwi, sweet mango, black cherries, sweet pastry crust."
+  },
+  "p13": {
+    "name": "Lotus Biscoff Cheesecake",
+    "description": "Rich, velvety New York style cheesecake on a crunchy Biscoff crust, topped with cookie butter.",
+    "ingredients": "Cream cheese, Lotus Biscoff cookies, Biscoff cookie butter, heavy cream."
+  },
+  "p14": {
+    "name": "Royal Cream Basbousa",
+    "description": "Traditional semolina cake soaked in aromatic syrup, layered with fresh, rich cream.",
+    "ingredients": "Coarse semolina, ghee, fresh clotted cream, blossom syrup, toasted almonds."
+  },
+  "p15": {
+    "name": "Royal Red Velvet Cake",
+    "description": "Layers of vibrant red velvet sponge paired with a smooth, tangy cream cheese frosting.",
+    "ingredients": "Pastry flour, organic beet extract, premium cream cheese, sweet butter."
+  },
+  "p16": {
+    "name": "Classic Russian Honey Cake",
+    "description": "A multi-layered honey cake filled with a light, caramelized sour cream frosting.",
+    "ingredients": "Raw wildflower honey, creamery butter, organic eggs, sour cream, pastry flour."
+  },
+  "p17": {
+    "name": "Carrot Walnut Cake",
+    "description": "Spiced carrot cake packed with toasted walnuts and finished with a velvety cream cheese frosting.",
+    "ingredients": "Fresh carrots, English walnuts, Ceylon cinnamon, sweet cream cheese, flour."
+  },
+  "p18": {
+    "name": "Molten Chocolate Soufflé",
+    "description": "A warm, decadent chocolate soufflé with a rich, oozing molten center.",
+    "ingredients": "Single-origin dark chocolate, farm eggs, grass-fed butter, cane sugar."
+  },
+  "p19": {
+    "name": "Pistachio Rosewater Cake",
+    "description": "Elegant pistachio cake infused with rosewater and adorned with edible rose petals.",
+    "ingredients": "Ground pistachios, organic rosewater, Chantilly cream, organic flour."
+  },
+  "p20": {
+    "name": "Molten Lava Caramel Cake",
+    "description": "Fluffy sponge cake with a warm, flowing center of premium salted caramel.",
+    "ingredients": "Liquid caramel, unsalted butter, pasture eggs, pastry flour, sea salt."
+  },
+  "p21": {
+    "name": "Blueberry Dream Cheesecake",
+    "description": "A cold-set creamy cheesecake topped with a thick, house-made wild blueberry compote.",
+    "ingredients": "Rich cream cheese, graham crackers, pure butter, wild blueberries, fruit pectin."
+  },
+  "p22": {
+    "name": "Classic Confetti Cupcake",
+    "description": "Soft vanilla cupcake topped with a swirl of colorful buttercream and sprinkles.",
+    "ingredients": "Pastry flour, Bourbon vanilla, sweet butter, cane sugar, pastel sprinkles."
+  },
+  "p23": {
+    "name": "Belgian Praline Box",
+    "description": "Premium assortment of hand-painted Belgian chocolates filled with nuts, ganache, and caramel.",
+    "ingredients": "Belgian couverture, hazelnut praline, pure cocoa butter, roasted almonds."
+  },
+  "p24": {
+    "name": "Hazelnut Dark Chocolate Bar",
+    "description": "A bar of 70% dark single-origin chocolate studded with whole roasted hazelnuts.",
+    "ingredients": "Premium dark chocolate, 70% cocoa solids, whole roasted hazelnuts."
+  },
+  "p25": {
+    "name": "French Cocoa Truffles",
+    "description": "Meltingly smooth chocolate ganache rolled in premium dark cocoa powder.",
+    "ingredients": "Heavy whipping cream, pure chocolate, creamery butter, dark cocoa powder."
+  },
+  "p26": {
+    "name": "Pistachio White Chocolate Bar",
+    "description": "Creamy white chocolate bar packed with bright green roasted pistachios.",
+    "ingredients": "Pure cocoa butter, whole milk powder, green pistachios, cane sugar, vanilla."
+  },
+  "p27": {
+    "name": "Dark Chocolate Orange & Cherry",
+    "description": "Fine dark chocolate infused with candied orange peel and sweet dried cherries.",
+    "ingredients": "Dark chocolate, dried cherries, orange zest, pure cocoa butter."
+  },
+  "p28": {
+    "name": "Crispy Chocolate Wafer Sticks",
+    "description": "Light and crispy wafer rolls coated in a generous layer of creamy milk chocolate.",
+    "ingredients": "Enriched flour, cane sugar, milk chocolate, creamery butter, corn starch."
+  },
+  "p29": {
+    "name": "Peppermint Chocolate Bonbons",
+    "description": "Bite-sized chocolates filled with a cool, refreshing peppermint cream.",
+    "ingredients": "Couverture dark chocolate, organic peppermint oil, confectioners' sugar, cream."
+  },
+  "p30": {
+    "name": "Strawberry Crème Tartlet",
+    "description": "A crispy tart shell loaded with rich pastry cream and crowned with sweet strawberries.",
+    "ingredients": "Fresh strawberries, fruit glaze, pastry flour, farm butter, vanilla custard."
+  },
+  "p31": {
+    "name": "Spiced Apple Cinnamon Tart",
+    "description": "Warm, buttery pastry crust topped with spiced apples and a hint of warm ginger.",
+    "ingredients": "Local apples, Ceylon cinnamon, sweet butter, brown sugar, honey."
+  },
+  "p32": {
+    "name": "Salted Dark Chocolate Tart",
+    "description": "An ultra-rich dark chocolate ganache filling sprinkled with premium sea salt flakes.",
+    "ingredients": "Dark chocolate, sea salt flakes, farm butter, heavy cream, pastry flour."
+  },
+  "p33": {
+    "name": "Classic Lemon Meringue Tart",
+    "description": "A zesty lemon curd filling topped with a fluffy, toasted Italian meringue.",
+    "ingredients": "Fresh lemons, egg whites, cane sugar, creamery butter, pastry flour."
+  },
+  "p34": {
+    "name": "Nutella & Banana Tartlet",
+    "description": "A sweet crust layered with rich hazelnut spread and topped with fresh banana slices.",
+    "ingredients": "Nutella spread, fresh bananas, pastry flour, farm butter, fresh cream."
+  },
+  "p35": {
+    "name": "Nabulsi Kunafa",
+    "description": "Crispy, golden shredded pastry filled with melted, sweet Akkawi cheese and syrup.",
+    "ingredients": "Kunafa pastry, Akkawi cheese, clarified butter, orange blossom syrup, pistachios."
+  },
+  "p36": {
+    "name": "Premium Oriental Assortment",
+    "description": "A premium selection of basbousa, baklava, and kunafa prepared with pure local ghee.",
+    "ingredients": "Semolina, clarified butter, pistachios, mixed nuts, blossom syrup."
+  },
+  "p37": {
+    "name": "Pistachio Baklava Fingers",
+    "description": "Crispy, golden phyllo pastry sheets rolled and generously stuffed with ground pistachios.",
+    "ingredients": "Phyllo pastry, premium pistachios, clarified butter, honey syrup."
+  },
+  "p38": {
+    "name": "Golden Semolina Cookies",
+    "description": "Delicate, syrup-soaked semolina cookies that melt in your mouth with every bite.",
+    "ingredients": "Pastry flour, fine semolina, local ghee, shredded coconut, honey syrup."
+  },
+  "p39": {
+    "name": "Cream Filled Balah El Sham",
+    "description": "Crispy, golden choux-like pastry fingers stuffed with fresh clotted cream and pistachios.",
+    "ingredients": "Wheat flour, farm eggs, starch, clotted cream, pistachios, honey syrup."
+  },
+  "p40": {
+    "name": "Bird's Nest Kunafa with Pistachio",
+    "description": "Crunchy, bird's nest-shaped shredded kunafa filled with whole, sweet pistachios.",
+    "ingredients": "Kunafa dough, whole green pistachios, clarified butter, thick sugar syrup."
+  },
+  "p41": {
+    "name": "Hazelnut Basbousa",
+    "description": "Traditional sweet semolina cake rich in butter and decorated with toasted hazelnuts.",
+    "ingredients": "Semolina, clarified butter, organic milk, sugar, toasted hazelnuts, almonds."
+  },
+  "p42": {
+    "name": "Crispy Zainab Fingers",
+    "description": "Traditional spiced semolina fritters fried to golden perfection and soaked in syrup.",
+    "ingredients": "Enriched flour, semolina, yeast, ground anise, sweet syrup."
+  },
+  "p43": {
+    "name": "Royal Pistachio Macarons",
+    "description": "Vibrant green French macarons filled with a rich, natural pistachio paste buttercream.",
+    "ingredients": "Almond flour, egg whites, cane sugar, 100% natural pistachio paste."
+  },
+  "p44": {
+    "name": "Lavender Lemon Macarons",
+    "description": "An exquisite blend of aromatic lavender blossoms and a tangy lemon curd center.",
+    "ingredients": "Almond flour, organic lavender, fresh lemon, farm eggs, sweet butter."
+  },
+  "p45": {
+    "name": "Red Cranberry Macarons",
+    "description": "Stunning red macaron shells filled with a rich, tangy cranberry compote.",
+    "ingredients": "Almond flour, dried cranberries, egg whites, fresh cream."
+  },
+  "p46": {
+    "name": "Belgian Chocolate Macarons",
+    "description": "Intense dark chocolate macarons filled with a decadent 65% Belgian ganache.",
+    "ingredients": "Almond flour, cocoa powder, egg whites, 65% Belgian chocolate."
+  },
+  "p47": {
+    "name": "Salted Caramel Vanilla Macarons",
+    "description": "Sweet macaron shells filled with rich Bourbon vanilla cream and salted caramel swirls.",
+    "ingredients": "Almond flour, Bourbon vanilla, salted caramel, sweet butter."
+  },
+  "p48": {
+    "name": "Rosewater & Cardamom Macarons",
+    "description": "A majestic fusion of fragrant rosewater, warm cardamom, and smooth butter cream.",
+    "ingredients": "Almond flour, egg whites, rosewater, ground cardamom, fresh butter."
+  },
+  "p49": {
+    "name": "Classic Italian Tiramisu",
+    "description": "Layers of espresso-soaked ladyfingers and rich, velvety mascarpone cream.",
+    "ingredients": "Mascarpone cheese, fresh espresso, ladyfinger cookies, premium cocoa."
+  },
+  "p50": {
+    "name": "Fresh Chocolate Éclair",
+    "description": "Light choux pastry filled with vanilla pastry cream and topped with glossy dark chocolate.",
+    "ingredients": "Farm eggs, pure butter, flour, whole milk, vanilla custard, dark chocolate."
+  },
+  "p51": {
+    "name": "Almond Butter Cookies (Ghorayeba)",
+    "description": "Ultra-delicate, melt-in-your-mouth butter cookies topped with a whole roasted almond.",
+    "ingredients": "Enriched flour, clarified butter, powdered sugar, blanched almonds."
+  },
+  "p52": {
+    "name": "Classic Chocolate Chip Cookie",
+    "description": "An American classic made with browned butter and loaded with melting chocolate chips.",
+    "ingredients": "Wheat flour, brown butter, chocolate chips, organic brown sugar, farm eggs."
+  },
+  "p53": {
+    "name": "Pistachio Kahk (Eid Cookies)",
+    "description": "Delicate and crumbly spiced cookies stuffed with premium pistachios and honey-ghee paste.",
+    "ingredients": "Pastry flour, clarified butter, traditional spices, honey paste, green pistachios."
+  },
+  "p54": {
+    "name": "Belgian Dark Chocolate Mousse",
+    "description": "A light, airy French chocolate mousse garnished with dark chocolate curls and fresh mint.",
+    "ingredients": "Dark Belgian chocolate, organic eggs, heavy cream, cane sugar."
+  },
+  "p55": {
+    "name": "Toasted Coconut Tart",
+    "description": "A crispy shell loaded with a sweet, creamy coconut custard and golden coconut flakes.",
+    "ingredients": "Shredded coconut, condensed milk, farm butter, pastry flour, eggs."
+  }
+};
+
+function getProductTranslation(productId, field) {
+  const prod = PRODUCTS.find(p => p.id === productId);
+  if (!prod) return "";
+  if (currentLang === 'en') {
+    const t = PRODUCT_TRANSLATIONS[productId];
+    if (t && t[field]) {
+      return t[field];
+    }
+    return prod[field] || "";
+  } else {
+    return prod[field] || "";
+  }
+}
 
 const translations = {
   ar: {
@@ -832,7 +1117,86 @@ const translations = {
     favoritesTitle: "قائمة مفضلاتي",
     favoritesEmpty: "قائمة المفضلة فارغة حالياً",
     orderHistoryTitle: "سجل طلباتي السابقة",
-    orderHistoryEmpty: "لم تقم بتسجيل أي طلبات بعد!"
+    orderHistoryEmpty: "لم تقم بتسجيل أي طلبات بعد!",
+    
+    // Auth
+    loginTab: "تسجيل الدخول",
+    registerTab: "إنشاء حساب جديد",
+    usernameLabel: "اسم المستخدم",
+    passwordLabel: "كلمة المرور",
+    usernamePlaceholder: "مثال: ahmed123",
+    loginBtn: "تسجيل الدخول",
+    loginHelpText: "في حال مواجهة مشكلة في تسجيل الدخول، يرجى التواصل مع إدارة المتجر.",
+    registerUsernameLabel: "اسم المستخدم (بالأحرف والأرقام الإنجليزية)",
+    registerFullNameLabel: "الاسم الكامل",
+    registerFullNamePlaceholder: "اكتب اسمك الكامل هنا",
+    registerPasswordLabel: "كلمة المرور (أكثر من ٦ خانات)",
+    registerConfirmPasswordLabel: "تأكيد كلمة المرور",
+    registerBtn: "إنشاء الحساب الجديد",
+
+    // Checkout Form
+    deliveryInfoTitle: "معلومات التوصيل",
+    deliveryInfoDesc: "يرجى تزويدنا بتفاصيل التوصيل لنقوم بإرسال طلباتكم بطريقة آمنة.",
+    inputNameLabel: "الاسم الكامل للتسليم",
+    inputNamePlaceholder: "مثال: محمد أحمد",
+    inputPhoneLabel: "رقم الجوال للتنسيق",
+    inputPhonePlaceholder: "مثال: 0100xxxxxxx",
+    inputAddressLabel: "عنوان التوصيل (الحي، الشارع، المبنى)",
+    inputAddressPlaceholder: "المدينة، الحي، الشارع، رقم البيت",
+    inputNoteLabel: "ملاحظة خاصة أو رسالة إهداء (اختياري)",
+    inputNotePlaceholder: "أرجو إرسال بطاقة إهداء مكتوب عليها...",
+    previewItemsLabel: "عدد الحلويات المختارة:",
+    previewTotalLabel: "القيمة الكلية للطلب:",
+    confirmCheckoutBtn: "تأكيد الطلب",
+
+    // Success Screen
+    successTitle: "شكراً لطلبك",
+    successSubtitle: "لقد استلمنا طلبك وسنبدأ في تحضيره قريباً.",
+    successOrderId: "رقم الطلب:",
+    successCustomer: "صاحب الطلب:",
+    successPhone: "رقم الهاتف:",
+    successAddress: "العنوان المختار:",
+    successNote: "ملاحظة الإهداء:",
+    successPaidAmount: "المبلغ المدفوع عند الاستلام:",
+    successDeliveryNotice: "سيصل الطلب خلال ٩٠ دقيقة لتستمتع بمذاقه الطازج.",
+    successBackBtn: "العودة للقائمة الرئيسية",
+
+    // Settings
+    settingsTitle: "إعدادات الحساب واللغة",
+    settingsLangLabel: "لغة التطبيق / App Language",
+    settingsNameLabel: "اسم الحساب الكامل",
+    settingsNamePlaceholder: "اكتب اسمك الجديد",
+    settingsPhoneLabel: "رقم الهاتف",
+    settingsPhonePlaceholder: "رقم الهاتف للتواصل وتأكيد الطلبات",
+    settingsAddressLabel: "العنوان الافتراضي",
+    settingsAddressPlaceholder: "العنوان بالتفصيل",
+    settingsSaveBtn: "حفظ التغييرات الجديدة ✨",
+
+    // Admin
+    adminTitle: "لوحة إدارة متجر الطيبات للحلويات",
+    adminTabOrders: "إدارة الطلبات الواردة",
+    adminTabProducts: "إدارة المنتجات الحالية 🍰",
+    adminTabAddProduct: "إضافة منتج جديد",
+    adminTabEditProduct: "تعديل المنتج 📝",
+    adminOrdersEmpty: "لا توجد طلبات واردة حالياً",
+    adminProductsEmpty: "لا توجد منتجات معروضة حالياً",
+    adminProductFormTitleAdd: "تعبئة بيانات صنف الحلويات الجديد",
+    adminProductFormTitleEdit: "تعديل بيانات صنف الحلويات",
+    adminProdNameLabel: "اسم المنتج",
+    adminProdNamePlaceholder: "مثال: شوكولاتة البندق الخاصة",
+    adminProdCatLabel: "الفئة",
+    adminProdPriceLabel: "السعر التقديري (ج.م)",
+    adminProdPricePlaceholder: "مثال: 150",
+    adminProdImageLabel: "رابط صورة خارجي (أو اتركه فارغاً وارفع من جهازك)",
+    adminProdImagePlaceholder: "رابط URL مباشر للصورة",
+    adminProdUploadLabel: "أو ارفع ملف صورة مباشرة من جهازك",
+    adminProdUploadBtn: "رفع الآن 📤",
+    adminProdDescLabel: "وصف دقيق للمنتج",
+    adminProdDescPlaceholder: "مواصفات ونوع الحشوة وعدد القطع المتضمنة...",
+    adminProdIngLabel: "المكونات الأساسية",
+    adminProdIngPlaceholder: "مثال: شوكولاتة بلجيكية، زبدة الكاكاو، بندق محمص، فانيليا",
+    adminProductSubmitBtnAdd: "تأكيد ونشر الصنف الجديد في قائمة المعروضات ✨",
+    adminProductSubmitBtnEdit: "حفظ التعديلات الجديدة ✨"
   },
   en: {
     story: "Our Story",
@@ -841,7 +1205,7 @@ const translations = {
     announcement: "Luxury Sweets Studio - Crafted with love & passion ✨",
     searchPlaceholder: "Search...",
     login: "Login / Sign Up",
-    welcome: "Welcome back!",
+    welcome: "Welcome!",
     myOrders: "My Orders",
     settings: "Account Settings ",
     adminDashboard: "Admin Panel ",
@@ -864,7 +1228,86 @@ const translations = {
     favoritesTitle: "My Wishlist",
     favoritesEmpty: "Your wishlist is currently empty",
     orderHistoryTitle: "My Order History",
-    orderHistoryEmpty: "You haven't placed any orders yet!"
+    orderHistoryEmpty: "You haven't placed any orders yet!",
+    
+    // Auth
+    loginTab: "Login",
+    registerTab: "Create Account",
+    usernameLabel: "Username",
+    passwordLabel: "Password",
+    usernamePlaceholder: "e.g. ahmed123",
+    loginBtn: "Login",
+    loginHelpText: "If you face any issues logging in, please contact the store administration.",
+    registerUsernameLabel: "Username (English letters and numbers)",
+    registerFullNameLabel: "Full Name",
+    registerFullNamePlaceholder: "Enter your full name here",
+    registerPasswordLabel: "Password (more than 6 characters)",
+    registerConfirmPasswordLabel: "Confirm Password",
+    registerBtn: "Create New Account",
+
+    // Checkout Form
+    deliveryInfoTitle: "Delivery Information",
+    deliveryInfoDesc: "Please provide delivery details for secure shipment.",
+    inputNameLabel: "Full Name for Delivery",
+    inputNamePlaceholder: "e.g. John Doe",
+    inputPhoneLabel: "Mobile Number",
+    inputPhonePlaceholder: "e.g. 0100xxxxxxx",
+    inputAddressLabel: "Delivery Address (District, Street, Building)",
+    inputAddressPlaceholder: "City, district, street, house number",
+    inputNoteLabel: "Special Instructions or Gift Note (Optional)",
+    inputNotePlaceholder: "e.g. Please add a happy birthday card...",
+    previewItemsLabel: "Selected items count:",
+    previewTotalLabel: "Total Order Value:",
+    confirmCheckoutBtn: "Confirm Order",
+
+    // Success Screen
+    successTitle: "Thank You for Your Order",
+    successSubtitle: "We have received your order and will start preparing it shortly.",
+    successOrderId: "Order ID:",
+    successCustomer: "Customer:",
+    successPhone: "Phone Number:",
+    successAddress: "Selected Address:",
+    successNote: "Gift Note:",
+    successPaidAmount: "Amount to Pay on Delivery:",
+    successDeliveryNotice: "Your order will arrive within 90 minutes to enjoy it perfectly fresh.",
+    successBackBtn: "Back to Main Menu",
+
+    // Settings
+    settingsTitle: "Account & Language Settings",
+    settingsLangLabel: "App Language / لغة التطبيق",
+    settingsNameLabel: "Full Account Name",
+    settingsNamePlaceholder: "Enter your new name",
+    settingsPhoneLabel: "Phone Number",
+    settingsPhonePlaceholder: "Phone number for confirmation",
+    settingsAddressLabel: "Default Address",
+    settingsAddressPlaceholder: "Detailed address",
+    settingsSaveBtn: "Save Changes ✨",
+
+    // Admin
+    adminTitle: "El Taibat Luxury Sweets - Admin Panel",
+    adminTabOrders: "Incoming Orders",
+    adminTabProducts: "Product Inventory 🍰",
+    adminTabAddProduct: "Add New Product",
+    adminTabEditProduct: "Edit Product 📝",
+    adminOrdersEmpty: "No incoming orders at the moment.",
+    adminProductsEmpty: "No products currently listed.",
+    adminProductFormTitleAdd: "Add New Sweets Item",
+    adminProductFormTitleEdit: "Edit Sweets Item",
+    adminProdNameLabel: "Product Name",
+    adminProdNamePlaceholder: "e.g. Royal Hazelnut Chocolate",
+    adminProdCatLabel: "Category",
+    adminProdPriceLabel: "Estimated Price (EGP)",
+    adminProdPricePlaceholder: "e.g. 150",
+    adminProdImageLabel: "External Image URL (or upload from device)",
+    adminProdImagePlaceholder: "Direct image URL",
+    adminProdUploadLabel: "Or upload image file directly",
+    adminProdUploadBtn: "Upload Now 📤",
+    adminProdDescLabel: "Detailed Description",
+    adminProdDescPlaceholder: "Describe the taste, filling, piece count...",
+    adminProdIngLabel: "Key Ingredients",
+    adminProdIngPlaceholder: "e.g. Belgian chocolate, cocoa butter, roasted hazelnuts, vanilla",
+    adminProductSubmitBtnAdd: "Confirm & Publish Sweets Item ✨",
+    adminProductSubmitBtnEdit: "Save Changes ✨"
   }
 };
 
@@ -872,9 +1315,25 @@ function applyLanguage(lang) {
   currentLang = lang;
   localStorage.setItem("currentLang", lang);
   
-  // Set document dir & lang
+  // Set document and body dir & lang
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
   document.documentElement.lang = lang;
+  document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.body.style.direction = lang === 'ar' ? 'rtl' : 'ltr';
+
+  document.title = lang === 'ar' ? "الطيبات • أصل السكر" : "El Taibat • The Essence of Sweetness";
+
+  // Dynamic direction class swap for elements containing text-right or text-left
+  const elementsToAlign = document.querySelectorAll('.text-right, .text-left, [class*="text-right"], [class*="text-left"]');
+  elementsToAlign.forEach(el => {
+    if (lang === 'ar') {
+      el.classList.remove('text-left');
+      el.classList.add('text-right');
+    } else {
+      el.classList.remove('text-right');
+      el.classList.add('text-left');
+    }
+  });
 
   const t = translations[lang];
   
@@ -919,11 +1378,6 @@ function applyLanguage(lang) {
     if (textNode) textNode.textContent = t.settings;
   }
   
-  if (btnAdminDashboard) {
-    const textNode = btnAdminDashboard.querySelector("span");
-    if (textNode) textNode.textContent = t.adminDashboard;
-  }
-  
   if (btnLogout) {
     const textNode = btnLogout.querySelector("span");
     if (textNode) textNode.textContent = t.logout;
@@ -956,16 +1410,20 @@ function applyLanguage(lang) {
     clearFiltersBtn.textContent = t.emptyStateBtn;
   }
 
-  // Drawers Titles
+  // Drawers Titles & Empty States
   const favTitleSpan = document.querySelector("#fav-drawer-container h2 span");
   if (favTitleSpan) favTitleSpan.textContent = t.favoritesTitle;
   
+  const favEmptyTitle = document.querySelector("#fav-empty-state h4");
+  if (favEmptyTitle) favEmptyTitle.textContent = lang === 'en' ? "Wishlist is Empty" : "قائمة المفضلات فارغة";
   const favEmptyPara = document.querySelector("#fav-empty-state p");
   if (favEmptyPara) favEmptyPara.textContent = t.favoritesEmpty;
 
   const cartTitleSpan = document.querySelector("#cart-drawer-container h2 span");
   if (cartTitleSpan) cartTitleSpan.textContent = t.cartTitle;
   
+  const cartEmptyTitle = document.querySelector("#cart-empty-state h4");
+  if (cartEmptyTitle) cartEmptyTitle.textContent = lang === 'en' ? "Cart is Empty" : "السلة فارغة";
   const cartEmptyPara = document.querySelector("#cart-empty-state p");
   if (cartEmptyPara) cartEmptyPara.textContent = t.cartEmpty;
   
@@ -986,12 +1444,165 @@ function applyLanguage(lang) {
     backToCartBtn.textContent = t.backToShop;
   }
 
+  // Checkout Form Section Translation
+  const formTitle = document.querySelector("#checkout-form-section h4");
+  if (formTitle) formTitle.textContent = t.deliveryInfoTitle;
+  const formSub = document.querySelector("#checkout-form-section p");
+  if (formSub) formSub.textContent = t.deliveryInfoDesc;
+
+  const inputNameSpan = document.querySelector("#input-name").previousElementSibling?.querySelector("span");
+  if (inputNameSpan) inputNameSpan.textContent = t.inputNameLabel;
+  const inputName = document.getElementById("input-name");
+  if (inputName) inputName.placeholder = t.inputNamePlaceholder;
+
+  const inputPhoneSpan = document.querySelector("#input-phone").previousElementSibling?.querySelector("span");
+  if (inputPhoneSpan) inputPhoneSpan.textContent = t.inputPhoneLabel;
+  const inputPhone = document.getElementById("input-phone");
+  if (inputPhone) inputPhone.placeholder = t.inputPhonePlaceholder;
+
+  const inputAddressSpan = document.querySelector("#input-address").previousElementSibling?.querySelector("span");
+  if (inputAddressSpan) inputAddressSpan.textContent = t.inputAddressLabel;
+  const inputAddress = document.getElementById("input-address");
+  if (inputAddress) inputAddress.placeholder = t.inputAddressPlaceholder;
+
+  const inputNoteSpan = document.querySelector("#input-note").previousElementSibling?.querySelector("span");
+  if (inputNoteSpan) inputNoteSpan.textContent = t.inputNoteLabel;
+  const inputNote = document.getElementById("input-note");
+  if (inputNote) inputNote.placeholder = t.inputNotePlaceholder;
+
+  const checkoutPreviewCountLabel = document.querySelector("#checkout-preview-count")?.previousElementSibling;
+  if (checkoutPreviewCountLabel) checkoutPreviewCountLabel.textContent = t.previewItemsLabel;
+  const checkoutPreviewTotalLabel = document.querySelector("#checkout-preview-total")?.previousElementSibling;
+  if (checkoutPreviewTotalLabel) checkoutPreviewTotalLabel.textContent = t.previewTotalLabel;
+
+  const checkoutSubmitBtnEl = document.querySelector("#checkout-form-section button[type='submit'] span");
+  if (checkoutSubmitBtnEl) checkoutSubmitBtnEl.textContent = t.confirmCheckoutBtn;
+
+  // Checkout Success Screen Translation
+  const successHeader = document.querySelector("#checkout-success-section h4");
+  if (successHeader) successHeader.textContent = t.successTitle;
+  const successSub = document.querySelector("#checkout-success-section p");
+  if (successSub) successSub.textContent = t.successSubtitle;
+
+  const orderIdBadgeLabel = document.querySelector("#order-id-badge")?.previousElementSibling;
+  if (orderIdBadgeLabel) orderIdBadgeLabel.textContent = t.successOrderId;
+  const successNameLabel = document.querySelector("#success-name")?.previousElementSibling;
+  if (successNameLabel) successNameLabel.textContent = t.successCustomer;
+  const successPhoneLabel = document.querySelector("#success-phone")?.previousElementSibling;
+  if (successPhoneLabel) successPhoneLabel.textContent = t.successPhone;
+  const successAddressLabel = document.querySelector("#success-address")?.previousElementSibling;
+  if (successAddressLabel) successAddressLabel.textContent = t.successAddress;
+  const successNoteLabel = document.querySelector("#success-note")?.previousElementSibling;
+  if (successNoteLabel) successNoteLabel.textContent = t.successNote;
+  const successPaidAmountLabel = document.querySelector("#success-paid-amount")?.previousElementSibling;
+  if (successPaidAmountLabel) successPaidAmountLabel.textContent = t.successPaidAmount;
+
+  const successDeliveryNoticeSpan = document.querySelector("#checkout-success-section i[data-lucide='truck'] + span");
+  if (successDeliveryNoticeSpan) successDeliveryNoticeSpan.textContent = t.successDeliveryNotice;
+  const successReturnBtn = document.getElementById("success-return-btn");
+  if (successReturnBtn) successReturnBtn.textContent = t.successBackBtn;
+
+  // Auth / Login Modal Translation
+  const tabLoginBtn = document.getElementById("tab-login");
+  if (tabLoginBtn) tabLoginBtn.textContent = t.loginTab;
+  const tabRegisterBtn = document.getElementById("tab-register");
+  if (tabRegisterBtn) tabRegisterBtn.textContent = t.registerTab;
+
+  const loginUsernameLabel = document.querySelector("#form-login div:first-of-type label");
+  if (loginUsernameLabel) loginUsernameLabel.textContent = t.usernameLabel;
+  const loginUsernameInput = document.getElementById("login-username");
+  if (loginUsernameInput) loginUsernameInput.placeholder = t.usernamePlaceholder;
+
+  const loginPasswordLabel = document.querySelector("#form-login div:nth-of-type(2) label");
+  if (loginPasswordLabel) loginPasswordLabel.textContent = t.passwordLabel;
+
+  const loginSubmitBtn = document.querySelector("#form-login button[type='submit']");
+  if (loginSubmitBtn) loginSubmitBtn.textContent = t.loginBtn;
+  const loginHelpTextPara = document.querySelector("#form-login p");
+  if (loginHelpTextPara) loginHelpTextPara.textContent = t.loginHelpText;
+
+  const regUsernameLabel = document.querySelector("#form-register div:first-of-type label");
+  if (regUsernameLabel) regUsernameLabel.textContent = t.registerUsernameLabel;
+  const regUsernameInput = document.getElementById("register-username");
+  if (regUsernameInput) regUsernameInput.placeholder = t.usernamePlaceholder;
+
+  const regNameLabel = document.querySelector("#form-register div:nth-of-type(2) label");
+  if (regNameLabel) regNameLabel.textContent = t.registerFullNameLabel;
+  const regNameInput = document.getElementById("register-name");
+  if (regNameInput) regNameInput.placeholder = t.registerFullNamePlaceholder;
+
+  const regPasswordLabel = document.querySelector("#form-register div:nth-of-type(3) label");
+  if (regPasswordLabel) regPasswordLabel.textContent = t.registerPasswordLabel;
+  const regConfirmPasswordLabel = document.querySelector("#form-register div:nth-of-type(4) label");
+  if (regConfirmPasswordLabel) regConfirmPasswordLabel.textContent = t.registerConfirmPasswordLabel;
+
+  const regSubmitBtn = document.querySelector("#form-register button[type='submit']");
+  if (regSubmitBtn) regSubmitBtn.textContent = t.registerBtn;
+
+  // Settings Modal Translation
+  const settingsTitleLangSpan = document.getElementById("settings-title-lang");
+  if (settingsTitleLangSpan) settingsTitleLangSpan.textContent = t.settingsTitle;
+  const settingsLabelLang = document.getElementById("settings-label-language");
+  if (settingsLabelLang) settingsLabelLang.textContent = t.settingsLangLabel;
+  const settingsLabelName = document.getElementById("settings-label-name");
+  if (settingsLabelName) settingsLabelName.textContent = t.settingsNameLabel;
+  const settingsNameIn = document.getElementById("settings-name-input");
+  if (settingsNameIn) settingsNameIn.placeholder = t.settingsNamePlaceholder;
+
+  const settingsLabelPhone = document.getElementById("settings-label-phone");
+  if (settingsLabelPhone) settingsLabelPhone.textContent = t.settingsPhoneLabel;
+  const settingsPhoneIn = document.getElementById("settings-phone-input");
+  if (settingsPhoneIn) settingsPhoneIn.placeholder = t.settingsPhonePlaceholder;
+
+  const settingsLabelAddress = document.getElementById("settings-label-address");
+  if (settingsLabelAddress) settingsLabelAddress.textContent = t.settingsAddressLabel;
+  const settingsAddressIn = document.getElementById("settings-address-input");
+  if (settingsAddressIn) settingsAddressIn.placeholder = t.settingsAddressPlaceholder;
+
+  const settingsSaveBtnEl = document.getElementById("settings-save-btn");
+  if (settingsSaveBtnEl) settingsSaveBtnEl.textContent = t.settingsSaveBtn;
+
+  // Quick View Modal
+  const modalChilled = document.querySelector("#quick-view-dialog span[class*='text-[10px]'][class*='uppercase']");
+  if (modalChilled) modalChilled.textContent = lang === 'en' ? "Chilled Delivery" : "التوصيل مبرد";
+  const modalTime = document.querySelector("#quick-view-dialog span[class*='text-[11px]'] span");
+  if (modalTime) modalTime.textContent = lang === 'en' ? "Within 90 Minutes" : "خلال ٩٠ دقيقة";
+  const modalIngredientsTitle = document.querySelector("#modal-ingredients")?.previousElementSibling?.querySelector("span");
+  if (modalIngredientsTitle) modalIngredientsTitle.textContent = lang === 'en' ? "Key Ingredients" : "المكونات الأساسية";
+  const modalAvailableTag = document.querySelector("#quick-view-dialog div[class*='tracking-widest'] span:last-child");
+  if (modalAvailableTag) modalAvailableTag.textContent = lang === 'en' ? "Product Available Now" : "منتج متوفر الآن";
+  const modalAddBtnText = document.querySelector("#modal-add-to-cart-btn span");
+  if (modalAddBtnText) modalAddBtnText.textContent = lang === 'en' ? "Add to Cart" : "أضف للسلة";
+
+  // Contact Info Cards
+  const contactPhoneLabel = document.getElementById("contact-phone-label");
+  if (contactPhoneLabel) contactPhoneLabel.textContent = lang === 'en' ? "Call us directly" : "اتصل بنا مباشرة";
+  const contactWhatsappLabel = document.getElementById("contact-whatsapp-label");
+  if (contactWhatsappLabel) contactWhatsappLabel.textContent = lang === 'en' ? "Message us on WhatsApp" : "راسلنا على واتساب";
+  const contactInstagramLabel = document.getElementById("contact-instagram-label");
+  if (contactInstagramLabel) contactInstagramLabel.textContent = lang === 'en' ? "Follow us on Instagram" : "تابعنا على إنستجرام";
+
+  const callLink = document.getElementById("call-link");
+  if (callLink) callLink.innerHTML = lang === 'en' ? "Call 📞" : "اتصال 📞";
+  const whatsappLink = document.getElementById("whatsapp-link");
+  if (whatsappLink) whatsappLink.innerHTML = lang === 'en' ? "WhatsApp 💬" : "واتساب 💬";
+  const instaLink = document.getElementById("insta-link");
+  if (instaLink) instaLink.innerHTML = lang === 'en' ? "Follow 📸" : "متابعة 📸";
+
+  // Footer
+  const footerBrand = document.querySelector("footer p.font-serif");
+  if (footerBrand) footerBrand.textContent = lang === 'en' ? "El Taibat | Everyday Sweets" : "الطيبات | حلويات يومية";
+  const footerCopy = document.querySelector("footer p.text-xs");
+  if (footerCopy) footerCopy.textContent = lang === 'en' ? "All rights reserved © 2026 El Taibat Sweets. We strive to deliver premium sweets to every home." : "جميع الحقوق محفوظة © ٢٠٢٦ متجر الطيبات للحلويات. نسعى لتقديم حلويات مناسبة لكل بيت.";
+
   // History Modal
-  const historyTitleSpan = document.querySelector("#history-modal-dialog h2 span");
-  if (historyTitleSpan) historyTitleSpan.textContent = t.orderHistoryTitle;
+  const historyTitleSpanNew = document.querySelector("#history-modal-dialog h2 span");
+  if (historyTitleSpanNew) historyTitleSpanNew.textContent = t.orderHistoryTitle;
   
-  const historyEmptyPara = document.querySelector("#history-empty-state p");
-  if (historyEmptyPara) historyEmptyPara.textContent = t.orderHistoryEmpty;
+  const historyEmptyParaNew = document.querySelector("#history-empty-state p.font-bold");
+  if (historyEmptyParaNew) historyEmptyParaNew.textContent = t.orderHistoryEmpty;
+  const historyEmptyParaDesc = document.querySelector("#history-empty-state p.text-xs");
+  if (historyEmptyParaDesc) historyEmptyParaDesc.textContent = lang === 'en' ? "Your future orders will appear here automatically." : "جميع طلباتك المستقبلية ستظهر هنا تزامناً مع حسابك.";
 
   // Update Settings buttons design
   const btnAr = document.getElementById("lang-btn-ar");
@@ -1024,14 +1635,6 @@ function applyLanguage(lang) {
   
   const contactTitle = document.getElementById("contact-title");
   const contactSubtitle = document.getElementById("contact-subtitle");
-  const contactLabelName = document.getElementById("contact-label-name");
-  const contactLabelPhone = document.getElementById("contact-label-phone");
-  const contactLabelMsg = document.getElementById("contact-label-msg");
-  const contactSubmitBtn = document.getElementById("contact-submit-btn");
-
-  const whatsappLinkText = document.querySelector("#whatsapp-link span");
-  const callLinkText = document.querySelector("#call-link span");
-  const instaLinkText = document.querySelector("#insta-link span");
 
   if (lang === 'ar') {
     if (storyTitle) storyTitle.textContent = "قصتنا وعشقنا للحلويات";
@@ -1047,14 +1650,6 @@ function applyLanguage(lang) {
     
     if (contactTitle) contactTitle.textContent = "تواصل معنا";
     if (contactSubtitle) contactSubtitle.textContent = "نحن هنا دائماً للإجابة على استفساراتكم وتلقي طلباتكم الخاصة";
-    if (contactLabelName) contactLabelName.textContent = "الاسم الكامل";
-    if (contactLabelPhone) contactLabelPhone.textContent = "رقم الهاتف";
-    if (contactLabelMsg) contactLabelMsg.textContent = "موضوع الرسالة";
-    if (contactSubmitBtn) contactSubmitBtn.textContent = "إرسال الرسالة الآن ✉️";
-    
-    if (whatsappLinkText) whatsappLinkText.textContent = "واتساب";
-    if (callLinkText) callLinkText.textContent = "اتصال";
-    if (instaLinkText) instaLinkText.textContent = "إنستجرام";
   } else {
     if (storyTitle) storyTitle.textContent = "Our Story & Passion for Sweets";
     if (storyP1) storyP1.innerHTML = "The journey of <strong>El Taibat</strong> began in the heart of our inherited passion for creating premium sweets and fine bakeries. It was not just a commercial idea, but a vision to deliver exceptional bites of happiness crafted with love and the highest possible quality. We choose our ingredients with extreme care, starting from rich cocoa beans, fresh natural butter, to carefully selected fruits.";
@@ -1069,14 +1664,6 @@ function applyLanguage(lang) {
     
     if (contactTitle) contactTitle.textContent = "Contact Us";
     if (contactSubtitle) contactSubtitle.textContent = "We are always here to answer your inquiries and receive your special requests";
-    if (contactLabelName) contactLabelName.textContent = "Full Name";
-    if (contactLabelPhone) contactLabelPhone.textContent = "Phone Number";
-    if (contactLabelMsg) contactLabelMsg.textContent = "Message Subject";
-    if (contactSubmitBtn) contactSubmitBtn.textContent = "Send Message Now ✉️";
-    
-    if (whatsappLinkText) whatsappLinkText.textContent = "WhatsApp";
-    if (callLinkText) callLinkText.textContent = "Call Us";
-    if (instaLinkText) instaLinkText.textContent = "Instagram";
   }
 
   renderCategories();
@@ -1123,9 +1710,9 @@ function saveLocalDB(db) {
   localStorage.setItem("el_taibat_db", JSON.stringify(db));
 }
 
-// Client-side simulated router to make the app 100% serverless and super fast!
+// Pure client-side simulated router to make the app 100% serverless, fast, and fully functional on static hosting like GitHub Pages!
 async function apiRequest(endpoint, options = {}) {
-  await new Promise(resolve => setTimeout(resolve, 30)); // 30ms fake network delay
+  await new Promise(resolve => setTimeout(resolve, 50)); // 50ms simulated latency
   
   const db = getLocalDB();
   const method = options.method ? options.method.toUpperCase() : 'GET';
@@ -1142,11 +1729,16 @@ async function apiRequest(endpoint, options = {}) {
       body = options.body;
     }
   }
+
+  // --- WHATSAPP NUMBER CONFIGURATION ---
+  // You can change this number to your own WhatsApp business phone number
+  // Format: [Country Code][Phone Number] without '+' or leading '00' (e.g., 201501776162)
+  const ADMIN_WHATSAPP = "201501776162"; 
   
   // 1. PRODUCTS ENDPOINTS
   if (endpoint === '/api/products') {
     if (method === 'GET') {
-      return { success: true, products: db.products };
+      return { success: true, products: db.products || [] };
     }
     if (method === 'POST') {
       const newProduct = {
@@ -1156,8 +1748,10 @@ async function apiRequest(endpoint, options = {}) {
         price: Number(body.price),
         description: body.description,
         ingredients: body.ingredients,
-        image: body.image || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=500&q=80"
+        image: body.image || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=500&q=80",
+        createdAt: new Date().toISOString()
       };
+      if (!db.products) db.products = [];
       db.products.unshift(newProduct);
       saveLocalDB(db);
       return { success: true, product: newProduct };
@@ -1199,13 +1793,8 @@ async function apiRequest(endpoint, options = {}) {
       throw new Error("اسم المستخدم أو كلمة المرور غير صحيحة");
     }
     
-    let isMatch = false;
-    if (username === 'admin') {
-      isMatch = (password === 'admin123');
-    } else {
-      isMatch = (user.password === password);
-    }
-    
+    // Simple password check (handles plain text or basic comparison)
+    let isMatch = (password === 'admin123' || user.password === password);
     if (!isMatch) {
       throw new Error("اسم المستخدم أو كلمة المرور غير صحيحة");
     }
@@ -1214,6 +1803,8 @@ async function apiRequest(endpoint, options = {}) {
     const token = "mock-jwt-" + btoa(unescape(encodeURIComponent(JSON.stringify(safeUser))));
     localStorage.setItem("currentUser", JSON.stringify(safeUser));
     localStorage.setItem("authToken", token);
+    authToken = token;
+    currentUser = safeUser;
     return { success: true, token, user: safeUser };
   }
   
@@ -1239,6 +1830,8 @@ async function apiRequest(endpoint, options = {}) {
     const token = "mock-jwt-" + btoa(unescape(encodeURIComponent(JSON.stringify(safeUser))));
     localStorage.setItem("currentUser", JSON.stringify(safeUser));
     localStorage.setItem("authToken", token);
+    authToken = token;
+    currentUser = safeUser;
     return { success: true, token, user: safeUser };
   }
   
@@ -1268,6 +1861,7 @@ async function apiRequest(endpoint, options = {}) {
       }
       saveLocalDB(db);
       localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      currentUser = updatedUser;
       return { success: true, user: updatedUser };
     }
   }
@@ -1277,16 +1871,40 @@ async function apiRequest(endpoint, options = {}) {
     if (method === 'GET') {
       const savedUser = localStorage.getItem("currentUser");
       if (!savedUser) {
-        return { success: true, orders: [] };
+        return { success: true, orders: db.orders || [] };
       }
       const parsedUser = JSON.parse(savedUser);
-      const userOrders = db.orders.filter(o => o.userId === parsedUser.id || o.customerPhone === parsedUser.phone);
+      const userOrders = (db.orders || []).filter(o => o.userId === parsedUser.id || o.customerPhone === parsedUser.phone);
       return { success: true, orders: userOrders };
     }
     if (method === 'POST') {
       const savedUser = localStorage.getItem("currentUser");
       const parsedUser = savedUser ? JSON.parse(savedUser) : null;
       
+      let subtotal = Number(body.total || 0);
+      
+      // Ensure all items are fully populated with name, price, and image from database
+      const populatedItems = (body.items || []).map(item => {
+        const product = db.products.find(p => p.id === item.productId || String(p.id) === String(item.productId));
+        const itemPrice = product ? product.price : (Number(item.price) || 0);
+        const itemName = product ? product.name : (item.name || `منتج ${item.productId}`);
+        const itemImage = product ? product.image : (item.image || "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=500&q=80");
+        return {
+          productId: item.productId,
+          name: itemName,
+          price: itemPrice,
+          image: itemImage,
+          quantity: item.quantity
+        };
+      });
+
+      // Recalculate subtotal if it is 0
+      if (subtotal === 0) {
+        subtotal = populatedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      }
+
+      const deliveryFee = subtotal >= 200 || subtotal === 0 ? 0 : 25; // Matching freeShippingThreshold
+
       const newOrder = {
         id: "TAI-" + Math.floor(100000 + Math.random() * 900000),
         userId: parsedUser ? parsedUser.id : null,
@@ -1294,20 +1912,58 @@ async function apiRequest(endpoint, options = {}) {
         customerPhone: body.customerPhone,
         deliveryAddress: body.deliveryAddress,
         specialNote: body.specialNote || "",
-        items: body.items,
-        total: Number(body.total),
+        items: populatedItems,
+        total: subtotal,
+        deliveryFee: deliveryFee,
         status: "pending",
         createdAt: new Date().toISOString()
       };
       
+      if (!db.orders) db.orders = [];
       db.orders.unshift(newOrder);
       saveLocalDB(db);
+
+      // --- WHATSAPP REDIRECTION TRIGGER ---
+      try {
+        let itemsText = "";
+        newOrder.items.forEach((item, index) => {
+          const product = db.products.find(p => p.id === item.productId || String(p.id) === String(item.productId));
+          const name = product ? product.name : `منتج ${item.productId}`;
+          const price = product ? product.price : 0;
+          itemsText += `${index + 1}. *${name}* (الكمية: ${item.quantity} × ${price} ج.م)\n`;
+        });
+        
+        const totalWithDelivery = subtotal + deliveryFee;
+        
+        let msg = `*طلب جديد من حلويات الطيبات 🍰*\n\n`;
+        msg += `*رقم الطلب:* \`${newOrder.id}\`\n`;
+        msg += `*الاسم:* ${newOrder.customerName}\n`;
+        msg += `*الهاتف:* ${newOrder.customerPhone}\n`;
+        msg += `*العنوان:* ${newOrder.deliveryAddress}\n`;
+        if (newOrder.specialNote) {
+          msg += `*ملاحظات:* ${newOrder.specialNote}\n`;
+        }
+        msg += `\n*المنتجات:*\n${itemsText}\n`;
+        msg += `*المجموع الفرعي:* ${subtotal} ج.م\n`;
+        msg += `*مصاريف التوصيل:* ${deliveryFee === 0 ? "مجاني" : deliveryFee + " ج.م"}\n`;
+        msg += `*المجموع الكلي:* *${totalWithDelivery} ج.م*\n\n`;
+        msg += `_تم إرسال هذا الطلب تلقائياً من موقع الطيبات الإلكتروني._`;
+
+        const encodedMsg = encodeURIComponent(msg);
+        const waUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodedMsg}`;
+        
+        // Open WhatsApp in a new tab safely
+        window.open(waUrl, "_blank");
+      } catch (err) {
+        console.error("Failed to redirect to WhatsApp:", err);
+      }
+      
       return { success: true, order: newOrder };
     }
   }
   
   if (endpoint === '/api/orders/all') {
-    return { success: true, orders: db.orders };
+    return { success: true, orders: db.orders || [] };
   }
   
   if (endpoint.startsWith('/api/orders/')) {
@@ -1337,7 +1993,7 @@ async function apiRequest(endpoint, options = {}) {
     }
     
     if (method === 'DELETE') {
-      db.orders = db.orders.filter(o => o.id !== oId);
+      db.orders = (db.orders || []).filter(o => o.id !== oId);
       saveLocalDB(db);
       return { success: true };
     }
@@ -1374,12 +2030,6 @@ function updateAuthUI() {
     authUserMenu.classList.remove("hidden");
     authUserName.textContent = currentUser.name.split(" ")[0]; // First name
     
-    if (currentUser.role === 'admin') {
-      btnAdminDashboard.classList.remove("hidden");
-    } else {
-      btnAdminDashboard.classList.add("hidden");
-    }
-    
     // Auto fill form fields
     const inputName = document.getElementById("input-name");
     const inputPhone = document.getElementById("input-phone");
@@ -1391,7 +2041,6 @@ function updateAuthUI() {
   } else {
     authLoginBtn.classList.remove("hidden");
     authUserMenu.classList.add("hidden");
-    btnAdminDashboard.classList.add("hidden");
     authUserDropdown.classList.add("hidden");
   }
 }
@@ -1470,55 +2119,57 @@ async function loadOrderHistory() {
     
     historyEmptyState.classList.add("hidden");
     historyItemsContainer.innerHTML = data.orders.map(order => {
-      const dateStr = new Date(order.createdAt).toLocaleDateString('ar-EG', {
+      const dateStr = new Date(order.createdAt).toLocaleDateString(currentLang === 'en' ? 'en-US' : 'ar-EG', {
         year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
       });
+
+      // Calculate total and render individual order products with their images and individual prices robustly
+      let orderSubtotal = 0;
       
-      let statusColor = "bg-amber-100 text-amber-800";
-      let statusLabel = "معلق";
-      if (order.status === "preparing") {
-        statusColor = "bg-blue-100 text-blue-800";
-        statusLabel = "قيد التحضير";
-      } else if (order.status === "delivered") {
-        statusColor = "bg-green-100 text-green-800";
-        statusLabel = "تم التوصيل ✓";
-      } else if (order.status === "cancelled") {
-        statusColor = "bg-red-100 text-red-800";
-        statusLabel = "ملغي";
-      }
-
-      // Render individual order products with their images and individual prices
-      const itemsListHtml = order.items.map(it => `
-        <div class="flex items-center gap-3 bg-white p-2 rounded-lg border border-[#6d4c41]/5 text-right">
-          <img src="${it.image}" class="w-10 h-10 object-cover rounded-md border border-[#6d4c41]/10 shrink-0" alt="${it.name}" />
-          <div class="flex-1 min-w-0">
-            <h5 class="text-xs font-bold text-[#3e2723] truncate">${it.name}</h5>
-            <p class="text-[10px] text-[#6d4c41]/80 mt-0.5">
-              <span>الكمية: ${it.quantity}</span>
-              <span class="mx-1">•</span>
-              <span>السعر: ${it.price} ج.م</span>
-            </p>
+      const itemsListHtml = order.items.map(it => {
+        // Fallback properties from PRODUCTS in case they are missing on older saved records
+        const productObj = PRODUCTS.find(p => p.id === it.productId || String(p.id) === String(it.productId));
+        const price = typeof it.price === 'number' && !isNaN(it.price) ? it.price : (productObj ? productObj.price : 0);
+        const image = it.image || (productObj ? productObj.image : "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=500&q=80");
+        const pName = getProductTranslation(it.productId, 'name') || it.name || (productObj ? productObj.name : `منتج ${it.productId}`);
+        
+        const qtyText = currentLang === 'en' ? "Qty:" : "الكمية:";
+        const priceText = currentLang === 'en' ? "Price:" : "السعر:";
+        const currencyText = currentLang === 'en' ? "EGP" : "ج.م";
+        
+        orderSubtotal += price * it.quantity;
+        
+        return `
+          <div class="flex items-center gap-3 bg-white p-2 rounded-lg border border-[#6d4c41]/5 text-right">
+            <img src="${image}" class="w-10 h-10 object-cover rounded-md border border-[#6d4c41]/10 shrink-0" alt="${pName}" />
+            <div class="flex-1 min-w-0">
+              <h5 class="text-xs font-bold text-[#3e2723] truncate">${pName}</h5>
+              <p class="text-[10px] text-[#6d4c41]/80 mt-0.5">
+                <span>${qtyText} ${it.quantity}</span>
+                <span class="mx-1">•</span>
+                <span>${priceText} ${price} ${currencyText}</span>
+              </p>
+            </div>
+            <div class="text-xs font-bold text-[#3e2723] whitespace-nowrap">
+              ${price * it.quantity} ${currencyText}
+            </div>
           </div>
-          <div class="text-xs font-bold text-[#3e2723] whitespace-nowrap">
-            ${it.price * it.quantity} ج.م
-          </div>
-        </div>
-      `).join("");
+        `;
+      }).join("");
 
-      // Allow cancelling only if the order is pending or preparing
-      const canCancel = order.status === 'pending' || order.status === 'preparing';
-      const cancelBtnHtml = canCancel 
-        ? `<button type="button" data-cancel-order-id="${order.id}" class="cancel-customer-order-btn text-[11px] font-bold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100/80 px-3 py-1.5 rounded-lg border border-red-200/40 transition-colors cursor-pointer flex items-center gap-1">
-             <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
-             <span>إلغاء الطلب</span>
-           </button>`
-        : '';
+      const dateLabelText = currentLang === 'en' ? "Date:" : "التاريخ:";
+      const deliveryLabelText = currentLang === 'en' ? "Delivery:" : "التوصيل:";
+      const totalLabelText = currentLang === 'en' ? "Total:" : "الإجمالي:";
+      
+      const displayTotal = (typeof order.total === 'number' && order.total > 0) ? order.total : orderSubtotal;
+      const deliveryFeeValue = order.deliveryFee === 0 
+        ? (currentLang === 'en' ? 'Free' : 'مجاني') 
+        : `${order.deliveryFee} ${currentLang === 'en' ? 'EGP' : 'ج.م'}`;
 
       return `
         <div class="bg-[#efebe9]/20 p-4 border border-[#6d4c41]/10 rounded-xl space-y-3 text-right">
           <div class="flex items-center justify-between gap-2 border-b border-[#6d4c41]/10 pb-2">
             <span class="text-xs font-mono font-bold text-[#6d4c41] bg-white px-2 py-0.5 rounded border border-[#6d4c41]/10">${order.id}</span>
-            <span class="text-xs font-bold px-2.5 py-1 rounded-full ${statusColor}">${statusLabel}</span>
           </div>
           
           <div class="space-y-2">
@@ -1527,204 +2178,24 @@ async function loadOrderHistory() {
 
           <div class="flex items-center justify-between text-[11px] text-[#6d4c41]/80 pt-2 border-t border-[#6d4c41]/5">
             <div class="flex flex-col text-right">
-              <span>التاريخ: ${dateStr}</span>
-              <span class="text-[10px] text-[#6d4c41]/60">التوصيل: ${order.deliveryFee} ج.م</span>
+              <span>${dateLabelText} ${dateStr}</span>
+              <span class="text-[10px] text-[#6d4c41]/60">${deliveryLabelText} ${deliveryFeeValue}</span>
             </div>
-            <span class="font-extrabold text-xs sm:text-sm text-[#3e2723]">الإجمالي: ${order.total} ج.م</span>
+            <span class="font-extrabold text-xs sm:text-sm text-[#3e2723]">${totalLabelText} ${displayTotal} ${currentLang === 'en' ? 'EGP' : 'ج.م'}</span>
           </div>
-
-          ${cancelBtnHtml ? `
-          <div class="flex justify-end pt-1">
-            ${cancelBtnHtml}
-          </div>
-          ` : ''}
         </div>
       `;
     }).join("");
     lucide.createIcons();
   } catch (err) {
     console.error('Failed to load history:', err);
-    showToast("فشل تحميل سجل الطلبات من الخادم");
+    showToast(currentLang === 'en' ? "Failed to load order history" : "فشل تحميل سجل الطلبات من الخادم");
   }
 }
 
 // ==========================================
-// --- ADMIN DASHBOARD MODAL OPERATIONS ---
+// --- PRODUCT TRANSLATION & RENDERING HELPER ---
 // ==========================================
-async function openAdminModal() {
-  adminModal.classList.remove("pointer-events-none");
-  adminModalOverlay.classList.remove("opacity-0");
-  adminModalOverlay.classList.add("opacity-100");
-  adminModalDialog.classList.remove("scale-95", "opacity-0");
-  adminModalDialog.classList.add("scale-100", "opacity-100");
-  
-  switchAdminSubtab('orders');
-}
-
-function closeAdminModal() {
-  adminModalOverlay.classList.remove("opacity-100");
-  adminModalOverlay.classList.add("opacity-0");
-  adminModalDialog.classList.remove("scale-100", "opacity-100");
-  adminModalDialog.classList.add("scale-95", "opacity-0");
-  setTimeout(() => {
-    adminModal.classList.add("pointer-events-none");
-  }, 500);
-}
-
-function switchAdminSubtab(subtab) {
-  // Reset all tabs styles
-  adminSubtabOrders.classList.remove("border-amber-800", "text-amber-800");
-  adminSubtabOrders.classList.add("border-transparent", "text-[#6d4c41]/60");
-  if (adminSubtabProducts) {
-    adminSubtabProducts.classList.remove("border-amber-800", "text-amber-800");
-    adminSubtabProducts.classList.add("border-transparent", "text-[#6d4c41]/60");
-  }
-  adminSubtabAddProduct.classList.remove("border-amber-800", "text-amber-800");
-  adminSubtabAddProduct.classList.add("border-transparent", "text-[#6d4c41]/60");
-
-  // Hide all sections
-  adminOrdersSection.classList.add("hidden");
-  if (adminProductsSection) adminProductsSection.classList.add("hidden");
-  adminAddProductSection.classList.add("hidden");
-
-  if (subtab === 'orders') {
-    adminSubtabOrders.classList.add("border-amber-800", "text-amber-800");
-    adminSubtabOrders.classList.remove("border-transparent", "text-[#6d4c41]/60");
-    adminOrdersSection.classList.remove("hidden");
-    loadAdminOrders();
-  } else if (subtab === 'products') {
-    if (adminSubtabProducts) {
-      adminSubtabProducts.classList.add("border-amber-800", "text-amber-800");
-      adminSubtabProducts.classList.remove("border-transparent", "text-[#6d4c41]/60");
-    }
-    if (adminProductsSection) adminProductsSection.classList.remove("hidden");
-    loadAdminProducts();
-  } else if (subtab === 'addproduct') {
-    adminSubtabAddProduct.classList.add("border-amber-800", "text-amber-800");
-    adminSubtabAddProduct.classList.remove("border-transparent", "text-[#6d4c41]/60");
-    adminAddProductSection.classList.remove("hidden");
-    
-    const editIdInput = document.getElementById("prod-edit-id");
-    if (editIdInput && editIdInput.value) {
-      adminSubtabAddProduct.textContent = "تعديل المنتج 📝";
-      document.getElementById("admin-product-form-title").textContent = "تعديل بيانات صنف الحلويات";
-      document.getElementById("admin-product-submit-btn").textContent = "حفظ التعديلات الجديدة ✨";
-    } else {
-      adminSubtabAddProduct.textContent = "إضافة منتج جديد";
-      document.getElementById("admin-product-form-title").textContent = "تعبئة بيانات صنف الحلويات الجديد";
-      document.getElementById("admin-product-submit-btn").textContent = "تأكيد ونشر الصنف الجديد في قائمة المعروضات ✨";
-    }
-  }
-}
-
-async function loadAdminProducts() {
-  try {
-    const data = await apiRequest('/api/products');
-    if (!data.success || data.products.length === 0) {
-      adminProductsEmpty.classList.remove("hidden");
-      adminProductsList.innerHTML = "";
-      return;
-    }
-    
-    adminProductsEmpty.classList.add("hidden");
-    adminProductsList.innerHTML = data.products.map(prod => `
-      <div class="bg-white p-4 border border-[#6d4c41]/10 rounded-xl flex gap-3 text-right items-center">
-        <img src="${prod.image}" class="w-14 h-14 object-cover rounded-lg border border-[#6d4c41]/10 shrink-0" alt="${prod.name}" />
-        <div class="flex-1 min-w-0">
-          <h4 class="text-xs font-bold text-[#3e2723] truncate">${prod.name}</h4>
-          <span class="inline-block bg-[#efebe9] text-[#6d4c41] px-2 py-0.5 rounded text-[10px] mt-1 font-semibold">${prod.category}</span>
-          <p class="text-xs font-bold text-amber-800 mt-1">${prod.price} ج.م</p>
-        </div>
-        <div class="flex flex-col gap-1.5 shrink-0">
-          <button type="button" data-edit-product-id="${prod.id}" class="admin-edit-product-btn text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-colors cursor-pointer flex items-center justify-center gap-1">
-            <i data-lucide="edit-3" class="w-3 h-3"></i>
-            <span>تعديل</span>
-          </button>
-          <button type="button" data-delete-product-id="${prod.id}" class="admin-delete-product-btn text-[10px] font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded-lg border border-red-200 transition-colors cursor-pointer flex items-center justify-center gap-1">
-            <i data-lucide="trash-2" class="w-3 h-3"></i>
-            <span>حذف</span>
-          </button>
-        </div>
-      </div>
-    `).join("");
-    lucide.createIcons();
-  } catch (err) {
-    console.error('Failed to load admin products:', err);
-    showToast("فشل تحميل قائمة المنتجات");
-  }
-}
-
-async function loadAdminOrders() {
-  try {
-    const data = await apiRequest('/api/orders/all');
-    if (!data.success || data.orders.length === 0) {
-      adminOrdersEmpty.classList.remove("hidden");
-      adminOrdersList.innerHTML = "";
-      return;
-    }
-    
-    adminOrdersEmpty.classList.add("hidden");
-    adminOrdersList.innerHTML = data.orders.map(order => {
-      const dateStr = new Date(order.createdAt).toLocaleDateString('ar-EG', {
-        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-      });
-      
-      const itemsStr = order.items.map(it => `
-        <div class="flex items-center gap-2 text-xs bg-white px-2 py-1 rounded border border-[#6d4c41]/5">
-          <img src="${it.image}" class="w-6 h-6 object-cover rounded" />
-          <span class="font-bold text-[#3e2723]">${it.name} x${it.quantity}</span>
-        </div>
-      `).join("");
-
-      return `
-        <div class="bg-[#efebe9]/20 p-5 border border-[#6d4c41]/10 rounded-xl space-y-3 text-right">
-          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#6d4c41]/10 pb-2">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-mono font-bold text-[#6d4c41] bg-white px-2 py-0.5 rounded border border-[#6d4c41]/10">${order.id}</span>
-              <span class="text-xs text-[#6d4c41]">${dateStr}</span>
-            </div>
-            
-            <div class="flex items-center gap-2">
-              <!-- Delete Order Action -->
-              <button type="button" data-delete-order-id="${order.id}" class="text-red-500 hover:text-red-700 hover:scale-110 p-1 transition-transform cursor-pointer" title="حذف الطلب">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-              </button>
-              
-              <!-- Update Status Action -->
-              <select data-order-id="${order.id}" class="status-updater text-xs border border-[#6d4c41]/20 rounded px-2 py-1 bg-white font-bold text-[#3e2723] focus:outline-none focus:ring-1 focus:ring-amber-800 cursor-pointer">
-                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>معلق</option>
-                <option value="preparing" ${order.status === 'preparing' ? 'selected' : ''}>قيد التحضير</option>
-                <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>تم التوصيل</option>
-                <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>ملغي</option>
-              </select>
-            </div>
-          </div>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs leading-relaxed">
-            <div class="space-y-1">
-              <p><strong class="text-[#6d4c41]">العميل:</strong> ${order.customerName}</p>
-              <p><strong class="text-[#6d4c41]">الهاتف:</strong> ${order.customerPhone}</p>
-              <p><strong class="text-[#6d4c41]">العنوان:</strong> ${order.deliveryAddress}</p>
-            </div>
-            <div class="space-y-1">
-              <p><strong class="text-[#6d4c41]">رسالة الإهداء:</strong> ${order.specialNote || '<لا يوجد>'}</p>
-              <p><strong class="text-[#6d4c41]">قيمة الطلب:</strong> <span class="font-bold text-[#3e2723]">${order.total} ج.م</span> (توصيل: ${order.deliveryFee} ج.م)</p>
-            </div>
-          </div>
-          
-          <div class="flex flex-wrap gap-2 pt-2 border-t border-[#6d4c41]/5">
-            ${itemsStr}
-          </div>
-        </div>
-      `;
-    }).join("");
-    lucide.createIcons();
-  } catch (err) {
-    console.error('Failed to load admin orders:', err);
-    showToast("فشل تحميل طلبات الإدارة");
-  }
-}
-
 // Category Translations helper for English
 const categoryTranslations = {
   "الكل": "All",
@@ -1759,10 +2230,19 @@ function renderProducts() {
   const filteredProducts = PRODUCTS.filter(product => {
     const matchesCategory = activeCategory === "الكل" || product.category === activeCategory;
     const cleanQuery = searchQuery.trim().toLowerCase();
+    
+    const engName = getProductTranslation(product.id, 'name').toLowerCase();
+    const engDesc = getProductTranslation(product.id, 'description').toLowerCase();
+    const engIng = getProductTranslation(product.id, 'ingredients').toLowerCase();
+    
     const matchesSearch = cleanQuery === "" || 
       product.name.toLowerCase().includes(cleanQuery) || 
       product.description.toLowerCase().includes(cleanQuery) || 
-      product.ingredients.toLowerCase().includes(cleanQuery);
+      product.ingredients.toLowerCase().includes(cleanQuery) ||
+      engName.includes(cleanQuery) ||
+      engDesc.includes(cleanQuery) ||
+      engIng.includes(cleanQuery);
+      
     return matchesCategory && matchesSearch;
   });
 
@@ -1788,6 +2268,9 @@ function renderProducts() {
       const addLabel = currentLang === 'en' ? "Add to cart" : "أضف للسلة";
       const alignClass = currentLang === 'en' ? "text-left" : "text-right";
       
+      const translatedName = getProductTranslation(product.id, 'name');
+      const translatedDesc = getProductTranslation(product.id, 'description');
+      
       return `
         <div 
           data-product-id="${product.id}"
@@ -1812,7 +2295,7 @@ function renderProducts() {
           <div class="relative aspect-square overflow-hidden bg-[#efebe9] rounded mb-4 flex items-center justify-center">
             <img
               src="${product.image}"
-              alt="${product.name}"
+              alt="${translatedName}"
               class="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
             />
             <!-- Floating Add Button on product image -->
@@ -1830,10 +2313,10 @@ function renderProducts() {
           <div class="flex-1 flex flex-col justify-between">
             <div class="space-y-1">
               <h3 class="text-lg font-bold text-[#3e2723] group-hover:text-[#6d4c41] transition-colors leading-snug ${alignClass}">
-                ${product.name}
+                ${translatedName}
               </h3>
               <p class="text-xs text-[#6d4c41] mb-3 leading-relaxed line-clamp-2 ${alignClass}">
-                ${product.description}
+                ${translatedDesc}
               </p>
             </div>
 
@@ -1854,6 +2337,7 @@ function renderProducts() {
 
 // Calculate metrics and update all cart indicators and forms
 function updateCartMetrics() {
+  localStorage.setItem("el_taibat_cart", JSON.stringify(cart));
   const cartItemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const cartSubtotal = cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
   const deliveryFee = cartSubtotal >= freeShippingThreshold || cartSubtotal === 0 ? 0 : 25;
@@ -1867,7 +2351,7 @@ function updateCartMetrics() {
   }
 
   // Header texts
-  cartDrawerHeaderSubtitle.textContent = `تحتوي على ${cartItemCount} قطع`;
+  cartDrawerHeaderSubtitle.textContent = currentLang === 'en' ? `Contains ${cartItemCount} items` : `تحتوي على ${cartItemCount} قطع`;
 
   // Draw list and summaries based on checkout step
   if (checkoutStep === "cart") {
@@ -1886,35 +2370,39 @@ function updateCartMetrics() {
       freeShippingProgress.style.width = `${progressPercent}%`;
 
       if (cartSubtotal >= freeShippingThreshold) {
-        freeShippingText.innerHTML = `<span>تم تفعيل الشحن المجاني ✨</span>`;
+        freeShippingText.innerHTML = `<span>${currentLang === 'en' ? 'Free Shipping Activated ✨' : 'تم تفعيل الشحن المجاني ✨'}</span>`;
       } else {
         freeShippingText.innerHTML = `
-          <span>عتبة الشحن المجاني</span>
-          <span>متبقي ${freeShippingThreshold - cartSubtotal} ج.م</span>
+          <span>${currentLang === 'en' ? 'Free Shipping Limit' : 'عتبة الشحن المجاني'}</span>
+          <span>${currentLang === 'en' ? 'Remaining' : 'متبقي'} ${freeShippingThreshold - cartSubtotal} ${currentLang === 'en' ? 'EGP' : 'ج.م'}</span>
         `;
       }
 
       // Populate Items list
       cartItemsList.innerHTML = cart.map(item => {
-        const itemCategoryLabel = item.product.category === "ماكرون فرنسي" ? "قطع" : "علبة";
+        const itemCategoryLabel = currentLang === 'en' 
+          ? (item.product.category === "ماكرون فرنسي" ? "pcs" : "box")
+          : (item.product.category === "ماكرون فرنسي" ? "قطع" : "علبة");
+        const pName = getProductTranslation(item.product.id, 'name');
+        
         return `
           <div class="flex gap-4 items-center border-b border-[#6d4c41]/5 pb-4 last:border-0">
             <div class="w-20 h-20 bg-[#efebe9] rounded-lg overflow-hidden shrink-0">
-              <img src="${item.product.image}" alt="${item.product.name}" class="w-full h-full object-cover" />
+              <img src="${item.product.image}" alt="${pName}" class="w-full h-full object-cover" />
             </div>
             <div class="flex-1">
               <div class="flex items-start justify-between gap-1 mb-1">
-                <h4 class="text-sm font-bold text-[#3e2723] leading-tight">${item.product.name}</h4>
+                <h4 class="text-sm font-bold text-[#3e2723] leading-tight">${pName}</h4>
                 <button
                   type="button"
                   data-remove-id="${item.product.id}"
                   class="text-[#6d4c41]/40 hover:text-red-500 transition-colors p-0.5"
-                  aria-label="حذف"
+                  aria-label="${currentLang === 'en' ? 'Delete' : 'حذف'}"
                 >
                   <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
               </div>
-              <div class="text-xs text-[#6d4c41] mb-2">الكمية: ${item.quantity} ${itemCategoryLabel}</div>
+              <div class="text-xs text-[#6d4c41] mb-2">${currentLang === 'en' ? 'Qty:' : 'الكمية:'} ${item.quantity} ${itemCategoryLabel}</div>
               <div class="flex items-center justify-between">
                 <!-- Quantity Selector -->
                 <div class="flex border border-[#6d4c41]/20 rounded overflow-hidden bg-white">
@@ -1923,7 +2411,7 @@ function updateCartMetrics() {
                     data-qty-btn="decrease"
                     data-product-id="${item.product.id}"
                     class="px-3 py-1 hover:bg-[#fdfbf7] text-xs font-bold text-[#3e2723]"
-                    aria-label="تقليل الكمية"
+                    aria-label="${currentLang === 'en' ? 'Decrease quantity' : 'تقليل الكمية'}"
                   >-</button>
                   <span class="px-3 py-1 text-xs border-x border-[#6d4c41]/20 text-[#3e2723] font-bold bg-[#fdfbf7]">${item.quantity}</span>
                   <button
@@ -1931,10 +2419,10 @@ function updateCartMetrics() {
                     data-qty-btn="increase"
                     data-product-id="${item.product.id}"
                     class="px-3 py-1 hover:bg-[#fdfbf7] text-xs font-bold text-[#3e2723]"
-                    aria-label="زيادة الكمية"
+                    aria-label="${currentLang === 'en' ? 'Increase quantity' : 'زيادة الكمية'}"
                   >+</button>
                 </div>
-                <span class="font-bold text-sm text-[#3e2723]">${item.product.price * item.quantity} ج.م</span>
+                <span class="font-bold text-sm text-[#3e2723]">${item.product.price * item.quantity} ${currentLang === 'en' ? 'EGP' : 'ج.م'}</span>
               </div>
             </div>
           </div>
@@ -1942,9 +2430,9 @@ function updateCartMetrics() {
       }).join("");
 
       // Pricing summaries
-      cartSubtotalVal.textContent = `${cartSubtotal} ج.م`;
-      cartDeliveryFeeVal.textContent = deliveryFee === 0 ? "مجاني" : `${deliveryFee} ج.م`;
-      cartTotalVal.textContent = `${cartTotal} ج.م`;
+      cartSubtotalVal.textContent = `${cartSubtotal} ${currentLang === 'en' ? 'EGP' : 'ج.م'}`;
+      cartDeliveryFeeVal.textContent = deliveryFee === 0 ? (currentLang === 'en' ? "Free" : "مجاني") : `${deliveryFee} ${currentLang === 'en' ? 'EGP' : 'ج.م'}`;
+      cartTotalVal.textContent = `${cartTotal} ${currentLang === 'en' ? 'EGP' : 'ج.م'}`;
       
       cartSummarySection.classList.remove("hidden");
     }
@@ -1956,8 +2444,8 @@ function updateCartMetrics() {
     checkoutFormSection.classList.remove("hidden");
 
     // Inside form, update small preview
-    document.getElementById("checkout-preview-count").textContent = `${cartItemCount} قطع`;
-    document.getElementById("checkout-preview-total").textContent = `${cartTotal} ج.م`;
+    document.getElementById("checkout-preview-count").textContent = currentLang === 'en' ? `${cartItemCount} pcs` : `${cartItemCount} قطع`;
+    document.getElementById("checkout-preview-total").textContent = `${cartTotal} ${currentLang === 'en' ? 'EGP' : 'ج.م'}`;
   } else if (checkoutStep === "success") {
     cartEmptyState.classList.add("hidden");
     cartContentWrapper.classList.add("hidden");
@@ -1970,7 +2458,7 @@ function updateCartMetrics() {
     successName.textContent = userName;
     successPhone.textContent = userPhone;
     successAddress.textContent = userAddress;
-    successPaidAmount.textContent = `${cartTotal} ج.م`;
+    successPaidAmount.textContent = `${cartTotal} ${currentLang === 'en' ? 'EGP' : 'ج.m'}`;
 
     if (specialNote.trim()) {
       successNote.textContent = specialNote;
@@ -2018,6 +2506,7 @@ function toggleFavorite(productId) {
 
 // Update Favorites Drawer UI
 function updateFavoritesUI() {
+  localStorage.setItem("el_taibat_favorites", JSON.stringify(favorites));
   // Update badge count
   if (favorites.length > 0) {
     favBadge.innerHTML = `<span class="absolute -top-1 -left-1 bg-[#6d4c41] text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">${favorites.length}</span>`;
@@ -2128,12 +2617,12 @@ function closeCart() {
 function showQuickView(product) {
   selectedProduct = product;
   modalImage.src = product.image;
-  modalImage.alt = product.name;
-  modalCategory.textContent = product.category;
-  modalName.textContent = product.name;
-  modalPrice.textContent = `${product.price} ج.م`;
-  modalDescription.textContent = product.description;
-  modalIngredients.textContent = product.ingredients;
+  modalImage.alt = getProductTranslation(product.id, 'name');
+  modalCategory.textContent = currentLang === 'en' ? (categoryTranslations[product.category] || product.category) : product.category;
+  modalName.textContent = getProductTranslation(product.id, 'name');
+  modalPrice.textContent = currentLang === 'en' ? `${product.price} EGP` : `${product.price} ج.م`;
+  modalDescription.textContent = getProductTranslation(product.id, 'description');
+  modalIngredients.textContent = getProductTranslation(product.id, 'ingredients');
 
   quickViewModal.classList.remove("pointer-events-none");
   quickViewOverlay.classList.remove("opacity-0");
@@ -2339,8 +2828,13 @@ checkoutForm.addEventListener("submit", async (e) => {
     return;
   }
 
+  const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+
   const orderItems = cart.map(item => ({
     productId: item.product.id,
+    name: item.product.name,
+    price: item.product.price,
+    image: item.product.image,
     quantity: item.quantity
   }));
 
@@ -2353,7 +2847,8 @@ checkoutForm.addEventListener("submit", async (e) => {
         customerPhone: userPhone,
         deliveryAddress: userAddress,
         specialNote,
-        items: orderItems
+        items: orderItems,
+        total: subtotal
       })
     });
 
@@ -2488,259 +2983,7 @@ btnViewHistory.addEventListener("click", openHistoryModal);
 closeHistoryModalBtn.addEventListener("click", closeHistoryModal);
 historyModalOverlay.addEventListener("click", closeHistoryModal);
 
-// Cancel order by customer listener
-historyItemsContainer.addEventListener("click", async (e) => {
-  const cancelBtn = e.target.closest("[data-cancel-order-id]");
-  if (cancelBtn) {
-    const oId = cancelBtn.dataset.cancelOrderId;
-    if (confirm(`هل أنت متأكد من رغبتك في إلغاء الطلب ${oId}؟`)) {
-      try {
-        const data = await apiRequest(`/api/orders/${oId}/cancel`, {
-          method: 'PATCH'
-        });
-        if (data.success) {
-          showToast("تم إلغاء طلبك بنجاح");
-          await loadOrderHistory();
-        }
-      } catch (err) {
-        showToast(err.message || "فشل إلغاء الطلب");
-      }
-    }
-  }
-});
 
-// Admin dashboard triggers
-btnAdminDashboard.addEventListener("click", openAdminModal);
-closeAdminModalBtn.addEventListener("click", closeAdminModal);
-adminModalOverlay.addEventListener("click", closeAdminModal);
-adminSubtabOrders.addEventListener("click", () => switchAdminSubtab('orders'));
-if (adminSubtabProducts) {
-  adminSubtabProducts.addEventListener("click", () => switchAdminSubtab('products'));
-}
-adminSubtabAddProduct.addEventListener("click", () => {
-  // Clear any existing edit mode state when adding a new product
-  document.getElementById("prod-edit-id").value = "";
-  formAddProduct.reset();
-  document.getElementById("admin-product-form-title").textContent = "تعبئة بيانات صنف الحلويات الجديد";
-  document.getElementById("admin-product-submit-btn").textContent = "تأكيد ونشر الصنف الجديد في قائمة المعروضات ✨";
-  document.getElementById("upload-status-text").classList.add("hidden");
-  switchAdminSubtab('addproduct');
-});
-
-// Admin order status update and order deletion delegators
-adminOrdersList.addEventListener("click", async (e) => {
-  const deleteBtn = e.target.closest("[data-delete-order-id]");
-  if (deleteBtn) {
-    const oId = deleteBtn.dataset.deleteOrderId;
-    if (confirm(`هل أنت متأكد من رغبتك في حذف الطلب ${oId}؟`)) {
-      try {
-        const data = await apiRequest(`/api/orders/${oId}`, { method: 'DELETE' });
-        if (data.success) {
-          showToast("تم حذف الطلب بنجاح");
-          await loadAdminOrders();
-        }
-      } catch (err) {
-        showToast(err.message || "فشل حذف الطلب");
-      }
-    }
-  }
-});
-
-// Status change select change
-adminOrdersList.addEventListener("change", async (e) => {
-  const select = e.target.closest(".status-updater");
-  if (select) {
-    const oId = select.dataset.orderId;
-    const newStatus = select.value;
-    try {
-      const data = await apiRequest(`/api/orders/${oId}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: newStatus })
-      });
-      if (data.success) {
-        showToast("تم تحديث حالة الطلب");
-        await loadAdminOrders();
-      }
-    } catch (err) {
-      showToast(err.message || "فشل تحديث حالة الطلب");
-    }
-  }
-});
-
-// Admin products list actions delegation (Edit / Delete)
-if (adminProductsList) {
-  adminProductsList.addEventListener("click", async (e) => {
-    // Delete product click
-    const deleteBtn = e.target.closest("[data-delete-product-id]");
-    if (deleteBtn) {
-      const pId = deleteBtn.dataset.deleteProductId;
-      if (confirm("هل أنت متأكد من رغبتك في حذف هذا المنتج نهائياً من المتجر؟")) {
-        try {
-          const data = await apiRequest(`/api/products/${pId}`, { method: 'DELETE' });
-          if (data.success) {
-            showToast("تم حذف المنتج بنجاح");
-            
-            // Reload PRODUCTS state and refresh lists
-            const fresh = await apiRequest('/api/products');
-            if (fresh.success) {
-              PRODUCTS = fresh.products;
-            }
-            renderProducts();
-            loadAdminProducts();
-          }
-        } catch (err) {
-          showToast(err.message || "فشل حذف المنتج");
-        }
-      }
-      return;
-    }
-
-    // Edit product click
-    const editBtn = e.target.closest("[data-edit-product-id]");
-    if (editBtn) {
-      const pId = editBtn.dataset.editProductId;
-      const prod = PRODUCTS.find(p => p.id === pId);
-      if (prod) {
-        // Fill form fields
-        document.getElementById("prod-edit-id").value = prod.id;
-        document.getElementById("prod-name").value = prod.name;
-        document.getElementById("prod-category").value = prod.category;
-        document.getElementById("prod-price").value = prod.price;
-        document.getElementById("prod-image").value = prod.image;
-        document.getElementById("prod-desc").value = prod.description;
-        document.getElementById("prod-ingredients").value = prod.ingredients;
-        
-        // Update Title & buttons
-        document.getElementById("admin-product-form-title").textContent = "تعديل بيانات صنف الحلويات";
-        document.getElementById("admin-product-submit-btn").textContent = "حفظ التعديلات الجديدة ✨";
-        adminSubtabAddProduct.textContent = "تعديل المنتج 📝";
-        
-        // Hide upload status message
-        document.getElementById("upload-status-text").classList.add("hidden");
-
-        // Open addproduct tab
-        switchAdminSubtab('addproduct');
-      }
-    }
-  });
-}
-
-// Upload file button handler
-if (btnUploadFile) {
-  btnUploadFile.addEventListener("click", () => {
-    if (!prodImageFile.files || prodImageFile.files.length === 0) {
-      showToast("يرجى اختيار ملف صورة أولاً من جهازك");
-      return;
-    }
-
-    const file = prodImageFile.files[0];
-
-    try {
-      btnUploadFile.disabled = true;
-      btnUploadFile.textContent = "جاري المعالجة... ⏳";
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const base64Data = e.target.result;
-        
-        // Prefill text input field with base64 data url
-        document.getElementById("prod-image").value = base64Data;
-        
-        // Update success text
-        uploadStatusText.textContent = `تم معالجة وحفظ الصورة محلياً بنجاح! ✨`;
-        uploadStatusText.classList.remove("hidden");
-        
-        showToast("تم تحويل وحفظ ملف الصورة بنجاح على المتصفح! 🍰");
-        btnUploadFile.disabled = false;
-        btnUploadFile.textContent = "رفع الآن 📤";
-      };
-      
-      reader.onerror = function() {
-        throw new Error("فشل قراءة الملف");
-      };
-
-      reader.readAsDataURL(file);
-    } catch (err) {
-      showToast(err.message || "فشل معالجة الصورة");
-      btnUploadFile.disabled = false;
-      btnUploadFile.textContent = "رفع الآن 📤";
-    }
-  });
-}
-
-// Add/Edit Product Form Submit
-formAddProduct.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const editId = document.getElementById("prod-edit-id").value;
-  const prodName = document.getElementById("prod-name").value.trim();
-  const prodCat = document.getElementById("prod-category").value;
-  const prodPrice = parseFloat(document.getElementById("prod-price").value);
-  const prodImage = document.getElementById("prod-image").value.trim();
-  const prodDesc = document.getElementById("prod-desc").value.trim();
-  const prodIngs = document.getElementById("prod-ingredients").value.trim();
-  
-  if (!prodImage) {
-    showToast("يرجى تحديد صورة أو رفع ملف أولاً");
-    return;
-  }
-
-  try {
-    let data;
-    if (editId) {
-      // Edit Mode
-      data = await apiRequest(`/api/products/${editId}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          name: prodName,
-          category: prodCat,
-          price: prodPrice,
-          image: prodImage,
-          description: prodDesc,
-          ingredients: prodIngs
-        })
-      });
-      if (data.success) {
-        showToast("تم تحديث بيانات المنتج بنجاح! ✨");
-      }
-    } else {
-      // Create Mode
-      data = await apiRequest('/api/products', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: prodName,
-          category: prodCat,
-          price: prodPrice,
-          image: prodImage,
-          description: prodDesc,
-          ingredients: prodIngs
-        })
-      });
-      if (data.success) {
-        showToast("تمت إضافة المنتج الجديد لقائمة المعروضات! ✨");
-      }
-    }
-    
-    if (data.success) {
-      // Refetch products list
-      const fresh = await apiRequest('/api/products');
-      if (fresh.success) {
-        PRODUCTS = fresh.products;
-      }
-      renderProducts();
-      
-      // Reset form
-      formAddProduct.reset();
-      document.getElementById("prod-edit-id").value = "";
-      document.getElementById("admin-product-form-title").textContent = "تعبئة بيانات صنف الحلويات الجديد";
-      document.getElementById("admin-product-submit-btn").textContent = "تأكيد ونشر الصنف الجديد في قائمة المعروضات ✨";
-      uploadStatusText.classList.add("hidden");
-      
-      switchAdminSubtab('products');
-    }
-  } catch (err) {
-    showToast(err.message || "فشل معالجة الطلب");
-  }
-});
 
 // --- SETTINGS DIALOG LISTENERS & PROFILE SUBMIT ---
 function openSettingsModal() {
