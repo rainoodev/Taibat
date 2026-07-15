@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>الطيبات • اصل السكر</title>
+    <!-- Tailwind CDN for the utility classes used in this template -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- CSS Entry Point -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- Leaflet Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  </head>
+  <body class="min-h-screen bg-luxury-bg text-[#3e2723] font-sans antialiased selection:bg-[#6d4c41] selection:text-white">
+    
+    <!-- 1. TOP ANNOUNCEMENT BAR -->
+    <div class="bg-[#6d4c41] text-white text-[11px] sm:text-xs font-semibold py-2 px-4 text-center tracking-wide border-b border-[#3e2723]/10 relative z-30">
+      <div class="max-w-7xl mx-auto flex items-center justify-center gap-2">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#c5a059] animate-pulse"></i>
+        <span>انتظروا عروضنا</span>
+        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#c5a059] animate-pulse"></i>
+      </div>
+    </div>
+
+    <!-- 2. MAIN HEADER -->
+    <header class="sticky top-0 bg-[#fdfbf7]/95 backdrop-blur-md border-b border-[#6d4c41]/10 z-20 transition-all duration-300">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 h-20 grid grid-cols-3 items-center">
+        
+        <!-- Right Column in RTL (visually right, source order first - Navigation Links) -->
+        <div class="flex items-center justify-start min-w-0">
+          <div class="hidden md:flex gap-6 lg:gap-8 text-sm uppercase tracking-widest font-semibold text-[#3e2723]">
+            <a href="#" class="hover:text-[#6d4c41] transition-colors relative py-1 after:absolute after:bottom-0 after:right-0 after:w-0 after:h-[1.5px] after:bg-[#6d4c41] hover:after:w-full after:transition-all after:duration-300">قصتنا</a>
+            <a href="#" class="hover:text-[#6d4c41] transition-colors relative py-1 after:absolute after:bottom-0 after:right-0 after:w-0 after:h-[1.5px] after:bg-[#6d4c41] hover:after:w-full after:transition-all after:duration-300">الموقع</a>
+            <a href="#" class="hover:text-[#6d4c41] transition-colors relative py-1 after:absolute after:bottom-0 after:right-0 after:w-0 after:h-[1.5px] after:bg-[#6d4c41] hover:after:w-full after:transition-all after:duration-300">تواصل معنا</a>
+          </div>
+        </div>
+
+        <!-- Center Column (Perfect center logo on both desktop and mobile) -->
+        <div id="brand-logo" class="flex flex-col items-center justify-center cursor-pointer select-none text-center px-2 min-w-0">
+          <h1 class="font-serif text-xl sm:text-3xl font-extrabold tracking-tight text-[#3e2723] leading-none italic hover:text-[#6d4c41] transition-colors duration-300">
+            El Taibat
+          </h1>
+          <span class="text-[8px] sm:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[#6d4c41] font-bold mt-1.5 whitespace-nowrap">
+            الطيبات • اصل السكر
+          </span>
+        </div>
+
+        <!-- Left Column in RTL (visually left, source order third - Search, Favorites, Cart) -->
+        <div class="flex items-center justify-end gap-1 sm:gap-3 min-w-0">
+          
+          <!-- Search Input -->
+          <div class="relative w-20 sm:w-48 max-w-[120px] sm:max-w-full">
+            <input
+              id="search-input"
+              type="text"
+              placeholder="ابحث..."
+              class="w-full bg-[#efebe9]/70 hover:bg-[#efebe9] focus:bg-white border-0 rounded-full py-1.5 pr-7 pl-2 text-[10px] sm:text-xs text-[#3e2723] placeholder-[#6d4c41]/50 focus:outline-none focus:ring-1 focus:ring-[#6d4c41]/30 transition-all text-right"
+            />
+            <i data-lucide="search" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#6d4c41]/70 absolute right-2 top-1/2 -translate-y-1/2"></i>
+          </div>
+
+          <!-- Auth Section -->
+          <div id="auth-section" class="relative">
+            <!-- Logged out button -->
+            <button
+              id="auth-login-btn"
+              type="button"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#6d4c41]/15 hover:bg-[#efebe9] text-[#3e2723] text-xs font-semibold transition-all duration-300 cursor-pointer"
+            >
+              <i data-lucide="user" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#3e2723]"></i>
+              <span class="hidden sm:inline">دخول</span>
+            </button>
+            
+            <!-- Logged in dropdown (initially hidden) -->
+            <div id="auth-user-menu" class="relative hidden">
+              <button
+                id="auth-user-btn"
+                type="button"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#3e2723]/5 hover:bg-[#3e2723]/10 text-[#3e2723] text-xs font-semibold transition-all duration-300 cursor-pointer"
+              >
+                <i data-lucide="user-check" class="w-3.5 h-3.5 text-[#6d4c41]"></i>
+                <span id="auth-user-name" class="max-w-[70px] truncate">الاسم</span>
+                <i data-lucide="chevron-down" class="w-3 h-3 text-[#6d4c41]"></i>
+              </button>
+              
+              <!-- Dropdown Menu -->
+              <div id="auth-user-dropdown" class="absolute left-0 mt-2 w-48 bg-white border border-[#6d4c41]/15 rounded-lg shadow-xl py-1 z-50 hidden text-right animate-fade-in">
+                <div id="dropdown-user-info" class="px-4 py-2 border-b border-[#6d4c41]/10 text-xs text-[#6d4c41] font-bold">
+                  مرحباً بك!
+                </div>
+                <button type="button" id="btn-view-history" class="w-full text-right px-4 py-2 text-xs text-[#3e2723] hover:bg-[#efebe9] transition-colors flex items-center justify-between cursor-pointer">
+                  <span>طلباتي السابقة</span>
+                  <i data-lucide="package" class="w-3.5 h-3.5 text-[#6d4c41]"></i>
+                </button>
+                <button type="button" id="btn-settings" class="w-full text-right px-4 py-2 text-xs text-[#3e2723] hover:bg-[#efebe9] transition-colors flex items-center justify-between cursor-pointer">
+                  <span>إعدادات الحساب</span>
+                  <i data-lucide="settings" class="w-3.5 h-3.5 text-[#6d4c41]"></i>
+                </button>
+                <button type="button" id="btn-admin-dashboard" class="w-full text-right px-4 py-2 text-xs text-amber-800 hover:bg-amber-50 transition-colors flex items-center justify-between cursor-pointer hidden font-bold">
+                  <span>لوحة الإدارة</span>
+                  <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-800"></i>
+                </button>
+                <button type="button" id="btn-logout" class="w-full text-right px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors flex items-center justify-between cursor-pointer border-t border-[#6d4c41]/10">
+                  <span>تسجيل الخروج</span>
+                  <i data-lucide="log-out" class="w-3.5 h-3.5 text-red-600"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Favorites Trigger Button -->
+          <button
+            id="fav-trigger-btn"
+            class="relative p-1.5 sm:p-2 rounded-full hover:bg-[#efebe9] text-[#3e2723] transition-all duration-300 shrink-0"
+            aria-label="المفضلة"
+          >
+            <i data-lucide="heart" class="w-4 h-4 sm:w-5 sm:h-5 text-[#3e2723]"></i>
+            <span id="fav-badge"></span>
+          </button>
+
+          <!-- Cart Button -->
+          <button
+            id="cart-trigger-btn"
+            class="relative p-1.5 sm:p-2 rounded-full hover:bg-[#efebe9] text-[#3e2723] transition-all duration-300 shrink-0"
+            aria-label="سلة التسوق"
+          >
+            <i data-lucide="shopping-cart" class="w-4 h-4 sm:w-5 sm:h-5 text-[#3e2723]"></i>
+            <span id="cart-badge"></span>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- 3. HERO SHOWCASE -->
+    <section class="relative overflow-hidden pt-12 pb-14 px-4 sm:px-6 lg:px-8 text-center max-w-4xl mx-auto">
+      <div class="relative z-10 space-y-4">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#efebe9] border border-[#6d4c41]/10 text-xs text-[#6d4c41] font-medium mx-auto">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#c5a059]"></i>
+          <span>حلويات طازجة ومناسبة لكل مناسبة</span>
+        </div>
+        <br class="hidden sm:block" />  
+
+
+
+        <h2 class="font-serif text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#3e2723] tracking-tight leading-tight sm:leading-none">
+         دلّع نفسك..<br />
+          <span class="text-[#6d4c41] font-serif italic font-normal block mt-2">واختار على ذوقك</span>
+        </h2>
+        <p class="max-w-2xl mx-auto text-xs sm:text-sm text-[#6d4c41]/90 leading-7 font-medium">
+          عندنا تشكيلة من الحلويات اللذيذة والمناسبة لأعيادك أو أي مناسبة بسيطة. تقدر تختار اللي يعجبك وتطلبه بسهولة من خلال السلة.
+        </p>
+        <div class="flex items-center justify-center gap-1.5 py-4">
+          <div class="w-1.5 h-1.5 rounded-full bg-[#6d4c41]/30"></div>
+          <div class="w-8 h-[1px] bg-[#6d4c41]/20"></div>
+          <i data-lucide="sparkles" class="w-4 h-4 text-[#c5a059]"></i>
+          <div class="w-8 h-[1px] bg-[#6d4c41]/20"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-[#6d4c41]/30"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CATEGORIES & GRID CONTAINER -->
+    <main class="max-w-7xl mx-auto px-6 lg:px-12 pb-24">
+      
+      <!-- Category Selector Grid -->
+      <div class="mb-12 border-b border-[#6d4c41]/10 bg-[#fdfbf7]/80">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
+          
+          <!-- Category Buttons Container (Filled by JS) -->
+          <div id="categories-container" class="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
+            <!-- Rendered by main.js -->
+          </div>
+
+          <!-- Total count display -->
+          <div id="total-count-display" class="text-xs text-[#6d4c41]/70 font-medium">
+            <!-- Rendered by main.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state (Filtered product matched nothing) -->
+      <div id="empty-state" class="text-center py-20 bg-[#efebe9]/30 rounded-lg border border-[#6d4c41]/10 max-w-xl mx-auto space-y-4 hidden">
+        <div class="w-12 h-12 rounded-full bg-[#efebe9] flex items-center justify-center mx-auto">
+          <i data-lucide="search" class="w-6 h-6 text-[#6d4c41]/40"></i>
+        </div>
+        <h3 class="font-serif text-lg font-bold text-[#3e2723]">لم نجد ما تبحث عنه</h3>
+        <p class="text-xs text-[#6d4c41]/70 max-w-xs mx-auto">
+          عذراً، لم تظهر أي نتائج مطابقة لبحثك أو التصنيف المحدد. حاول تغيير كلمات البحث أو استعراض تصنيفات أخرى.
+        </p>
+        <button
+          id="clear-filters-btn"
+          type="button"
+          class="text-xs font-semibold text-[#6d4c41] underline decoration-[#c5a059] decoration-2 underline-offset-4 hover:text-[#3e2723] transition-colors"
+        >
+          استعراض كافة القائمة
+        </button>
+      </div>
+
+      <!-- 5. PRODUCT CARDS GRID (Filled by JS) -->
+      <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <!-- Rendered by main.js -->
+      </div>
+
+    </main>
+
+    <!-- 6.5 FAVORITES DRAWER (Slides from Left) -->
+    <div id="fav-drawer" class="fixed inset-0 z-50 overflow-hidden pointer-events-none" role="dialog" aria-modal="true">
+      <!-- Backdrop overlay -->
+      <div id="fav-overlay" class="absolute inset-0 bg-[#3e2723]/30 backdrop-blur-sm opacity-0 transition-opacity duration-500"></div>
+
+      <!-- Drawer Panel Container -->
+      <div id="fav-drawer-container" class="absolute top-0 left-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col z-10 -translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+        
+        <!-- Drawer Header -->
+        <div class="p-8 border-b border-[#6d4c41]/10 flex justify-between items-center bg-white">
+          <button
+            id="close-fav-btn"
+            type="button"
+            class="text-[#6d4c41] hover:rotate-90 hover:text-[#3e2723] transition-transform duration-300 p-1"
+            aria-label="إغلاق المفضلة"
+          >
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+          <div class="text-right">
+            <h2 class="text-xl font-bold font-serif text-[#3e2723]">قائمة المفضلات</h2>
+            <p id="fav-drawer-subtitle" class="text-xs text-[#6d4c41] mt-1">تحتوي على ٠ قطع</p>
+          </div>
+        </div>
+
+        <!-- Empty Favorites State -->
+        <div id="fav-empty-state" class="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+          <div class="w-16 h-16 rounded-full bg-[#efebe9] flex items-center justify-center text-[#6d4c41]">
+            <i data-lucide="heart" class="w-8 h-8 opacity-60"></i>
+          </div>
+          <h4 class="font-serif text-base font-bold text-[#3e2723]">قائمة المفضلات فارغة</h4>
+          <p class="text-xs text-[#6d4c41]/80 max-w-xs leading-relaxed">
+            لم تقم بإضافة أي حلويات للمفضلة بعد. اضغط على رمز القلب لتفضيل المنتجات التي تعجبك.
+          </p>
+          <button
+            id="start-fav-shopping-btn"
+            type="button"
+            class="px-6 py-2.5 bg-[#3e2723] text-white text-xs font-bold rounded-full hover:bg-[#6d4c41] transition-colors shadow-md"
+          >
+            استعراض القائمة
+          </button>
+        </div>
+
+        <!-- Active Favorites Content Wrapper -->
+        <div id="fav-content-wrapper" class="flex-1 flex flex-col justify-between overflow-hidden hidden">
+          <!-- Items List Scroll Area -->
+          <div class="flex-1 overflow-y-auto p-8 space-y-6">
+            <!-- List container for items -->
+            <div id="fav-items-list" class="space-y-6">
+              <!-- Filled dynamically by JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 6. CART DRAWER (Slides from Right) -->
+    <div id="cart-drawer" class="fixed inset-0 z-50 overflow-hidden pointer-events-none" role="dialog" aria-modal="true">
+      <!-- Backdrop overlay -->
+      <div id="cart-overlay" class="absolute inset-0 bg-[#3e2723]/30 backdrop-blur-sm opacity-0 transition-opacity duration-500"></div>
+
+      <!-- Drawer Panel Container -->
+      <div id="cart-drawer-container" class="absolute top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col z-10 translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+        
+        <!-- Drawer Header -->
+        <div class="p-8 border-b border-[#6d4c41]/10 flex justify-between items-center bg-white">
+          <div>
+            <h2 id="cart-drawer-header-title" class="text-xl font-bold font-serif text-[#3e2723]">سلة المشتريات</h2>
+            <p id="cart-drawer-header-subtitle" class="text-xs text-[#6d4c41] mt-1">تحتوي على ٠ قطع</p>
+          </div>
+          <button
+            id="close-cart-btn"
+            type="button"
+            class="text-[#6d4c41] hover:rotate-90 hover:text-[#3e2723] transition-transform duration-300 p-1"
+            aria-label="إغلاق السلة"
+          >
+            <i data-lucide="x" class="w-6 h-6"></i>
+          </button>
+        </div>
+
+        <!-- 6a. Empty Cart State -->
+        <div id="cart-empty-state" class="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+          <div class="w-16 h-16 rounded-full bg-[#efebe9] flex items-center justify-center text-[#6d4c41]">
+            <i data-lucide="shopping-bag" class="w-8 h-8 opacity-60"></i>
+          </div>
+          <h4 class="font-serif text-base font-bold text-[#3e2723]">سلتك فارغة تماماً</h4>
+          <p class="text-xs text-[#6d4c41]/80 max-w-xs leading-relaxed">
+            لم تقم بإضافة أي من الحلويات بعد. تصفح القائمة الآن واختر ما يناسبك.
+          </p>
+          <button
+            id="start-shopping-btn"
+            type="button"
+            class="px-6 py-2.5 bg-[#3e2723] text-white text-xs font-bold rounded-full hover:bg-[#6d4c41] transition-colors shadow-md"
+          >
+            استعراض القائمة
+          </button>
+        </div>
+
+        <!-- 6b. Active Cart Content Wrapper -->
+        <div id="cart-content-wrapper" class="flex-1 flex flex-col justify-between overflow-hidden hidden">
+          <!-- Items List Scroll Area -->
+          <div class="flex-1 overflow-y-auto p-8 space-y-6">
+            
+            <!-- Free Shipping Banner -->
+            <div id="free-shipping-banner" class="bg-[#efebe9]/50 p-4 rounded-lg border border-[#6d4c41]/10 space-y-2">
+              <div id="free-shipping-text" class="flex items-center justify-between text-xs font-bold text-[#3e2723]">
+                <!-- Filled dynamically by JS -->
+              </div>
+              <div class="w-full bg-[#efebe9] h-1.5 rounded-full overflow-hidden">
+                <div id="free-shipping-progress" class="bg-[#6d4c41] h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- List container for items -->
+            <div id="cart-items-list" class="space-y-6">
+              <!-- Filled dynamically by JS -->
+            </div>
+
+          </div>
+
+          <!-- Checkout Calculations and Trigger -->
+          <div id="cart-summary-section" class="p-8 bg-[#fdfbf7] border-t border-[#6d4c41]/10 space-y-0">
+            <div class="flex justify-between mb-2 text-sm">
+              <span class="text-[#6d4c41]">المجموع الفرعي</span>
+              <span id="cart-subtotal-val" class="font-bold text-[#3e2723]">٠ ج.م</span>
+            </div>
+            <div class="flex justify-between mb-4 text-sm">
+              <span class="text-[#6d4c41]">رسوم التوصيل</span>
+              <span id="cart-delivery-fee-val" class="font-medium text-[#3e2723]">مجاني</span>
+            </div>
+            <div class="flex justify-between mb-8 pt-4 border-t border-[#6d4c41]/10">
+              <span class="text-lg font-bold text-[#3e2723]">الإجمالي</span>
+              <span id="cart-total-val" class="text-lg font-bold text-[#3e2723]">٠ ج.م</span>
+            </div>
+
+            <button
+              id="to-checkout-btn"
+              type="button"
+              class="w-full bg-[#3e2723] text-white py-4 rounded-full font-bold tracking-widest text-sm hover:bg-[#6d4c41] transition-colors shadow-lg flex items-center justify-center gap-2 focus:outline-none"
+            >
+              <span>إتمام الطلب</span>
+              <i data-lucide="sparkles" class="w-4 h-4 text-[#c5a059]"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 6c. Checkout Form Section -->
+        <div id="checkout-form-section" class="flex-1 flex flex-col justify-between overflow-hidden hidden">
+          <form id="checkout-form" class="flex-1 flex flex-col justify-between overflow-hidden">
+            <div class="flex-1 overflow-y-auto p-8 space-y-6">
+              
+              <!-- Back button -->
+              <button
+                id="back-to-cart-btn"
+                type="button"
+                class="inline-flex items-center gap-1.5 text-xs text-[#6d4c41] hover:text-[#3e2723] font-semibold mb-2 group"
+              >
+                <i data-lucide="chevron-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
+                <span>العودة للسلة</span>
+              </button>
+
+              <div class="space-y-1.5">
+                <h4 class="font-serif text-base font-bold text-[#3e2723]">معلومات التوصيل</h4>
+                <p class="text-xs text-[#6d4c41]/80 leading-normal">
+                  يرجى تزويدنا بتفاصيل التوصيل لنقوم بإرسال طلباتكم بطريقة آمنة.
+                </p>
+              </div>
+
+              <!-- Input group -->
+              <div class="space-y-4">
+                <!-- Name Input -->
+                <div class="space-y-1.5 text-right">
+                  <label class="text-xs font-bold text-[#3e2723] flex items-center gap-1.5 justify-end">
+                    <span>الاسم الكامل للتسليم</span>
+                    <i data-lucide="user" class="w-3.5 h-3.5 text-[#6d4c41]/70"></i>
+                  </label>
+                  <input
+                    id="input-name"
+                    type="text"
+                    required
+                    placeholder=""
+                    class="w-full bg-[#efebe9] border-0 rounded-lg px-4 py-3 text-xs text-[#3e2723] placeholder-[#6d4c41]/40 focus:outline-none focus:ring-1 focus:ring-[#6d4c41] text-right transition-all"
+                  />
+                </div>
+
+                <!-- Phone Input -->
+                <div class="space-y-1.5 text-right">
+                  <label class="text-xs font-bold text-[#3e2723] flex items-center gap-1.5 justify-end">
+                    <span>رقم الجوال للتنسيق</span>
+                    <i data-lucide="phone" class="w-3.5 h-3.5 text-[#6d4c41]/70"></i>
+                  </label>
+                  <input
+                    id="input-phone"
+                    type="tel"
+                    required
+                    placeholder="01xxxxxxxxx"
+                    class="w-full bg-[#efebe9] border-0 rounded-lg px-4 py-3 text-xs text-[#3e2723] placeholder-[#6d4c41]/40 focus:outline-none focus:ring-1 focus:ring-[#6d4c41] text-right transition-all"
+                  />
+                </div>
+
+                <!-- Address Input -->
+                <div class="space-y-1.5 text-right">
+                  <label class="text-xs font-bold text-[#3e2723] flex items-center gap-1.5 justify-end">
+                    <span>عنوان التوصيل (الحي، الشارع، المبنى)</span>
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-[#6d4c41]/70"></i>
+                  </label>
+                  <textarea
+                    id="input-address"
+                    required
+                    rows="2"
+                    placeholder="المدينة، الحي، الشارع، رقم البيت"
+                    class="w-full bg-[#efebe9] border-0 rounded-lg px-4 py-3 text-xs text-[#3e2723] placeholder-[#6d4c41]/40 focus:outline-none focus:ring-1 focus:ring-[#6d4c41] text-right transition-all resize-none"
+                  ></textarea>
+                </div>
+
+                <!-- Note Input -->
+                <div class="space-y-1.5 text-right">
+                  <label class="text-xs font-bold text-[#3e2723] flex items-center gap-1.5 justify-end">
+                    <span>ملاحظة خاصة أو رسالة إهداء (اختياري)</span>
+                    <i data-lucide="gift" class="w-3.5 h-3.5 text-[#6d4c41]/70"></i>
+                  </label>
+                  <textarea
+                    id="input-note"
+                    rows="2"
+                    placeholder="أرجو إرسال بطاقة إهداء مكتوب عليها..."
+                    class="w-full bg-[#efebe9] border-0 rounded-lg px-4 py-3 text-xs text-[#3e2723] placeholder-[#6d4c41]/40 focus:outline-none focus:ring-1 focus:ring-[#6d4c41] text-right transition-all resize-none"
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Subtotal preview -->
+              <div class="p-4 rounded-lg bg-[#efebe9]/40 border border-[#6d4c41]/10 text-xs space-y-1.5">
+                <div class="flex justify-between text-[#6d4c41]">
+                  <span>عدد الحلويات المختارة:</span>
+                  <span id="checkout-preview-count" class="font-bold">٠ قطع</span>
+                </div>
+                <div class="flex justify-between text-[#3e2723] font-bold text-sm pt-1.5 border-t border-[#6d4c41]/10">
+                  <span>القيمة الكلية للطلب:</span>
+                  <span id="checkout-preview-total" class="font-extrabold text-[#3e2723]">٠ ج.م</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Submit button wrapper -->
+            <div class="p-8 border-t border-[#6d4c41]/10 bg-[#fdfbf7]">
+              <button
+                type="submit"
+                class="w-full py-4 rounded-full bg-[#3e2723] hover:bg-[#6d4c41] text-white font-bold text-xs sm:text-sm tracking-widest transition-colors shadow-lg flex items-center justify-center gap-2 focus:outline-none"
+              >
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>تأكيد الطلب</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 6d. Checkout Success Section -->
+        <div id="checkout-success-section" class="flex-1 flex flex-col justify-between p-8 text-center hidden">
+          <div class="my-auto space-y-6">
+            
+            <!-- Gold animated seal -->
+            <div class="w-20 h-20 rounded-full bg-[#efebe9] border border-[#c5a059] flex items-center justify-center mx-auto relative">
+              <i data-lucide="sparkles" class="w-10 h-10 text-[#c5a059]"></i>
+              <i data-lucide="check" class="w-4 h-4 text-[#3e2723] absolute bottom-1 right-1 bg-white rounded-full p-0.5 border border-[#c5a059]"></i>
+            </div>
+
+            <div class="space-y-2.5">
+              <h4 class="font-serif text-xl sm:text-2xl font-extrabold text-[#3e2723]">شكراً لطلبك</h4>
+              <p class="text-xs text-[#6d4c41]/80 max-w-xs mx-auto leading-relaxed">
+                لقد استلمنا طلبك وسنبدأ في تحضيره قريباً.
+              </p>
+            </div>
+
+            <!-- Receipt Card -->
+            <div class="p-6 rounded-lg bg-[#efebe9]/50 border border-[#6d4c41]/10 text-right space-y-4 max-w-sm mx-auto">
+              <div class="flex justify-between items-center text-xs font-bold border-b border-[#6d4c41]/10 pb-2">
+                <span class="text-[#6d4c41]">رقم الطلب:</span>
+                <span id="order-id-badge" class="bg-[#3e2723] text-white px-2.5 py-0.5 rounded text-[10px] tracking-wider">AND-000000</span>
+              </div>
+
+              <div class="text-[11px] text-[#6d4c41]/90 space-y-1.5 font-medium">
+                <div class="flex justify-between">
+                  <span>صاحب الطلب:</span>
+                  <span id="success-name" class="text-[#3e2723] font-bold">عمر</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>رقم الهاتف:</span>
+                  <span id="success-phone" class="text-[#3e2723] font-bold">050</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>العنوان المختار:</span>
+                  <span id="success-address" class="text-[#3e2723] font-bold line-clamp-1">العنوان المختار</span>
+                </div>
+                <div id="success-note-row" class="flex justify-between border-t border-[#6d4c41]/10 pt-1.5 mt-1.5 hidden">
+                  <span>ملاحظة الإهداء:</span>
+                  <span id="success-note" class="text-[#6d4c41] font-bold italic line-clamp-1"></span>
+                </div>
+              </div>
+
+              <div class="flex justify-between text-xs font-extrabold border-t border-[#6d4c41]/10 pt-2 text-[#3e2723]">
+                <span>المبلغ المدفوع عند الاستلام:</span>
+                <span id="success-paid-amount" class="text-sm font-bold">٠ ج.م</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 justify-center text-[10px] text-[#6d4c41]/70 font-semibold max-w-xs mx-auto">
+              <i data-lucide="truck" class="w-4 h-4 text-[#c5a059] shrink-0"></i>
+              <span>سيصل الطلب خلال ٩٠ دقيقة لتستمتع بمذاقه الطازج.</span>
+            </div>
+
+          </div>
+
+          <button
+            id="success-return-btn"
+            type="button"
+            class="w-full py-4 rounded-full bg-[#3e2723] hover:bg-[#6d4c41] text-white font-bold text-xs sm:text-sm transition-colors shadow-lg"
+          >
+            العودة للقائمة الرئيسية
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 7. QUICK VIEW MODAL (Centered dialog popup) -->
+    <div id="quick-view-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 pointer-events-none" role="dialog" aria-modal="true">
+      <!-- Backdrop overlay -->
+      <div id="quick-view-overlay" class="absolute inset-0 bg-[#3e2723]/30 backdrop-blur-sm opacity-0 transition-opacity duration-500"></div>
+
+      <!-- Modal panel -->
+      <div id="quick-view-dialog" class="relative bg-white w-full max-w-3xl rounded-lg overflow-hidden shadow-2xl z-10 border border-[#6d4c41]/10 scale-95 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col md:flex-row">
+        
+        <!-- Close button inside modal -->
+        <button
+          id="close-quick-view-btn"
+          type="button"
+          class="absolute top-4 left-4 z-20 p-2 rounded-full bg-white/95 border border-[#6d4c41]/10 text-[#6d4c41] hover:text-[#3e2723] hover:rotate-90 transition-all duration-300 shadow-sm"
+          aria-label="إغلاق النافذة"
+        >
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Product Image Panel -->
+        <div class="w-full md:w-1/2 aspect-square md:aspect-auto relative bg-[#efebe9] min-h-[220px] md:min-h-0">
+          <img 
+            id="modal-image"
+            src="" 
+            alt="" 
+            class="w-full h-full object-cover"
+          />
+          <div class="absolute bottom-4 right-4 z-10">
+            <span id="modal-category" class="px-3.5 py-1.5 rounded bg-white text-xs font-bold text-[#6d4c41] border border-[#6d4c41]/10 shadow-sm">
+              شوكولاتة عادية
+            </span>
+          </div>
+        </div>
+
+        <!-- Product Details Panel -->
+        <div class="w-full md:w-1/2 p-8 flex flex-col justify-between text-right space-y-6">
+          <div class="space-y-4">
+            
+            <!-- Category Tag -->
+            <div class="flex items-center gap-1.5 text-xs text-[#6d4c41] uppercase tracking-widest font-bold">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#c5a059]"></span>
+              <span>منتج متوفر الآن</span>
+            </div>
+
+            <!-- Title & Price -->
+            <div class="space-y-1.5">
+              <h3 id="modal-name" class="font-serif text-xl sm:text-2xl font-extrabold text-[#3e2723] leading-tight">
+                صندوق بونبون الملكي
+              </h3>
+              <div id="modal-price" class="text-lg sm:text-xl font-bold text-[#3e2723]">
+                ١٨٠ ج.م
+              </div>
+            </div>
+
+            <!-- Description -->
+            <p id="modal-description" class="text-xs sm:text-sm text-[#6d4c41]/90 leading-relaxed font-light">
+              تشكيلة من الشوكولاتة اللذيذة مع نكهات بسيطة ومناسبة للجميع.
+            </p>
+
+            <!-- Ingredients Section -->
+            <div class="space-y-2 pt-2">
+              <h4 class="text-xs font-bold text-[#3e2723] flex items-center gap-1.5 justify-end">
+                <span>المكونات الأساسية</span>
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#c5a059]"></i>
+              </h4>
+              <p id="modal-ingredients" class="text-xs text-[#6d4c41] leading-relaxed bg-[#efebe9] p-4 rounded-lg">
+                شوكولاتة، سكر، كريمة، ومكونات بسيطة أخرى.
+              </p>
+            </div>
+          </div>
+
+          <!-- Add to Cart Actions -->
+          <div class="pt-4 border-t border-[#6d4c41]/10 flex items-center justify-between gap-4">
+            <div class="flex flex-col text-right">
+              <span class="text-[10px] text-[#6d4c41]/50 uppercase font-bold tracking-wider">التوصيل مبرد</span>
+              <span class="text-[11px] sm:text-xs text-[#3e2723] font-bold flex items-center gap-1 mt-0.5 justify-end">
+                <span>خلال ٩٠ دقيقة</span>
+                <i data-lucide="clock" class="w-3 h-3 text-[#c5a059]"></i>
+              </span>
+            </div>
+
+            <button
+              id="modal-add-to-cart-btn"
+              type="button"
+              class="flex-1 py-4 px-6 rounded-full bg-[#3e2723] hover:bg-[#6d4c41] text-white text-xs sm:text-sm font-bold tracking-widest transition-colors shadow-lg flex items-center justify-center gap-2"
+            >
+              <i data-lucide="shopping-cart" class="w-4 h-4 text-white"></i>
+              <span>أضف للسلة</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- AUTHENTICATION MODAL (Login / Register) -->
+    <!-- ========================================== -->
+    <div id="auth-modal" class="fixed inset-0 z-50 overflow-y-auto pointer-events-none" role="dialog" aria-modal="true">
+      <!-- Backdrop overlay -->
+      <div id="auth-modal-overlay" class="absolute inset-0 bg-[#3e2723]/40 backdrop-blur-sm opacity-0 transition-opacity duration-500"></div>
+
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div id="auth-modal-dialog" class="relative w-full max-w-md bg-white border border-[#6d4c41]/10 rounded-2xl shadow-2xl p-6 sm:p-8 transform scale-95 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] text-right">
+          
+          <!-- Close Button -->
+          <button
+            type="button"
+            id="close-auth-modal-btn"
+            class="absolute top-4 left-4 text-[#6d4c41]/60 hover:text-[#3e2723] hover:rotate-90 transition-transform duration-300 p-1"
+          >
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Tabs -->
+          <div class="flex border-b border-[#6d4c41]/10 mb-6 pb-2 gap-4">
+            <button
+              type="button"
+              id="tab-login"
+              class="pb-2 text-sm font-bold border-b-2 border-[#3e2723] text-[#3e2723] cursor-pointer"
+            >
+              تسجيل الدخول
+            </button>
+            <button
+              type="button"
+              id="tab-register"
+              class="pb-2 text-sm font-bold border-b-2 border-transparent text-[#6d4c41]/60 hover:text-[#3e2723] cursor-pointer"
+            >
+              إنشاء حساب جديد
+            </button>
+          </div>
+
+          <!-- Login Form -->
+          <form id="form-login" class="space-y-4">
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-[#6d4c41]">اسم المستخدم</label>
+              <input
+                id="login-username"
+                type="text"
+                required
+                placeholder="مثال: ahmed123"
+                class="w-full bg-[#efebe9]/30 border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#6d4c41]/40 text-right"
+              />
+            </div>
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-[#6d4c41]">كلمة المرور</label>
+              <input
+                id="login-password"
+                type="password"
+                required
+                placeholder="••••••••"
+                class="w-full bg-[#efebe9]/30 border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#6d4c41]/40 text-right"
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full py-3 bg-[#3e2723] hover:bg-[#6d4c41] text-white text-xs font-bold rounded-lg shadow transition-colors cursor-pointer"
+            >
+              تسجيل الدخول
+            </button>
+            <p class="text-[11px] text-[#6d4c41]/50 text-center">
+              في حال مواجهة مشكلة في تسجيل الدخول، يرجى التواصل مع إدارة المتجر.
+            </p>
+          </form>
+
+          <!-- Register Form (initially hidden) -->
+          <form id="form-register" class="space-y-4 hidden">
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-[#6d4c41]">اسم المستخدم (بالأحرف والأرقام الإنجليزية)</label>
+              <input
+                id="register-username"
+                type="text"
+                required
+                placeholder="مثال: ahmed123"
+                class="w-full bg-[#efebe9]/30 border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#6d4c41]/40 text-right"
+              />
+            </div>
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-[#6d4c41]">الاسم الكامل</label>
+              <input
+                id="register-name"
+                type="text"
+                required
+                placeholder="اكتب اسمك الكامل هنا"
+                class="w-full bg-[#efebe9]/30 border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#6d4c41]/40 text-right"
+              />
+            </div>
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-[#6d4c41]">كلمة المرور (أكثر من ٦ خانات)</label>
+              <input
+                id="register-password"
+                type="password"
+                required
+                placeholder="••••••••"
+                class="w-full bg-[#efebe9]/30 border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#6d4c41]/40 text-right"
+              />
+            </div>
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-[#6d4c41]">تأكيد كلمة المرور</label>
+              <input
+                id="register-confirm-password"
+                type="password"
+                required
+                placeholder="••••••••"
+                class="w-full bg-[#efebe9]/30 border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#6d4c41]/40 text-right"
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full py-3 bg-[#3e2723] hover:bg-[#6d4c41] text-white text-xs font-bold rounded-lg shadow transition-colors cursor-pointer"
+            >
+              إنشاء الحساب الجديد
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- ORDER HISTORY MODAL -->
+    <!-- ========================================== -->
+    <div id="history-modal" class="fixed inset-0 z-50 overflow-y-auto pointer-events-none" role="dialog" aria-modal="true">
+      <!-- Backdrop overlay -->
+      <div id="history-modal-overlay" class="absolute inset-0 bg-[#3e2723]/40 backdrop-blur-sm opacity-0 transition-opacity duration-500"></div>
+
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div id="history-modal-dialog" class="relative w-full max-w-2xl bg-white border border-[#6d4c41]/10 rounded-2xl shadow-2xl p-6 sm:p-8 transform scale-95 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] text-right flex flex-col max-h-[85vh]">
+          
+          <!-- Close Button -->
+          <button
+            type="button"
+            id="close-history-modal-btn"
+            class="absolute top-4 left-4 text-[#6d4c41]/60 hover:text-[#3e2723] hover:rotate-90 transition-transform duration-300 p-1"
+          >
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+
+          <h2 class="font-serif text-xl font-bold text-[#3e2723] mb-4 flex items-center justify-end gap-2">
+            <span>سجل طلباتي السابقة</span>
+            <i data-lucide="package" class="w-5 h-5 text-[#c5a059]"></i>
+          </h2>
+
+          <div id="history-empty-state" class="text-center py-12 space-y-3 hidden">
+            <i data-lucide="shopping-bag" class="w-12 h-12 text-[#6d4c41]/30 mx-auto"></i>
+            <p class="text-sm text-[#6d4c41] font-bold">لم تقم بتسجيل أي طلبات بعد!</p>
+            <p class="text-xs text-[#6d4c41]/60">جميع طلباتك المستقبلية ستظهر هنا تزامناً مع حسابك.</p>
+          </div>
+
+          <!-- History items container -->
+          <div id="history-items-container" class="space-y-4 overflow-y-auto flex-1 pr-1 pl-1">
+            <!-- Dynamically populated -->
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- ADMIN DASHBOARD MODAL -->
+    <!-- ========================================== -->
+    <div id="admin-modal" class="fixed inset-0 z-50 overflow-y-auto pointer-events-none" role="dialog" aria-modal="true">
+      <!-- Backdrop overlay -->
+      <div id="admin-modal-overlay" class="absolute inset-0 bg-[#3e2723]/40 backdrop-blur-sm opacity-0 transition-opacity duration-500"></div>
+
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div id="admin-modal-dialog" class="relative w-full max-w-4xl bg-white border border-[#6d4c41]/10 rounded-2xl shadow-2xl p-6 sm:p-8 transform scale-95 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] text-right flex flex-col max-h-[90vh]">
+          
+          <!-- Close Button -->
+          <button
+            type="button"
+            id="close-admin-modal-btn"
+            class="absolute top-4 left-4 text-[#6d4c41]/60 hover:text-[#3e2723] hover:rotate-90 transition-transform duration-300 p-1"
+          >
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Title -->
+          <h2 class="font-serif text-xl font-bold text-[#3e2723] mb-4 flex items-center justify-end gap-2 pb-2 border-b border-[#6d4c41]/10">
+            <span class="text-amber-800">لوحة إدارة متجر الطيبات للحلويات</span>
+            <i data-lucide="shield-alert" class="w-5 h-5 text-amber-800"></i>
+          </h2>
+
+          <!-- Subtabs for Admin (Orders / Products / Add) -->
+          <div class="flex gap-4 border-b border-[#6d4c41]/10 mb-6 pb-2 text-xs">
+            <button
+              type="button"
+              id="admin-subtab-orders"
+              class="pb-1.5 font-bold border-b-2 border-amber-800 text-amber-800 cursor-pointer"
+            >
+              إدارة الطلبات الواردة
+            </button>
+            <button
+              type="button"
+              id="admin-subtab-products"
+              class="pb-1.5 font-bold border-b-2 border-transparent text-[#6d4c41]/60 hover:text-amber-800 cursor-pointer"
+            >
+              إدارة المنتجات الحالية 🍰
+            </button>
+            <button
+              type="button"
+              id="admin-subtab-addproduct"
+              class="pb-1.5 font-bold border-b-2 border-transparent text-[#6d4c41]/60 hover:text-amber-800 cursor-pointer"
+            >
+              إضافة منتج جديد
+            </button>
+          </div>
+
+          <!-- Admin Section: Orders Manager -->
+          <div id="admin-orders-section" class="flex-1 overflow-y-auto space-y-4 pr-1">
+            <div id="admin-orders-empty" class="text-center py-12 space-y-2 hidden">
+              <i data-lucide="inbox" class="w-10 h-10 text-[#6d4c41]/30 mx-auto"></i>
+              <p class="text-sm text-[#6d4c41] font-bold">لا توجد طلبات واردة حالياً</p>
+            </div>
+            
+            <div id="admin-orders-list" class="space-y-4">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Admin Section: Products Manager (NEW) -->
+          <div id="admin-products-section" class="flex-1 overflow-y-auto space-y-4 hidden pr-1 text-right">
+            <div id="admin-products-empty" class="text-center py-12 space-y-2 hidden">
+              <i data-lucide="cookie" class="w-10 h-10 text-[#6d4c41]/30 mx-auto"></i>
+              <p class="text-sm text-[#6d4c41] font-bold">لا توجد منتجات معروضة حالياً</p>
+            </div>
+            
+            <div id="admin-products-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- Admin Section: Add Product Form (initially hidden) -->
+          <div id="admin-addproduct-section" class="flex-1 overflow-y-auto space-y-4 hidden pr-1 text-right">
+            <form id="form-add-product" class="space-y-4 max-w-xl mx-auto bg-[#efebe9]/20 p-6 rounded-xl border border-[#6d4c41]/10">
+              <input type="hidden" id="prod-edit-id" value="" />
+              <h3 id="admin-product-form-title" class="text-sm font-bold text-[#3e2723] mb-2">تعبئة بيانات صنف الحلويات الجديد</h3>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <label class="block text-xs font-bold text-[#6d4c41]">اسم المنتج</label>
+                  <input id="prod-name" type="text" required placeholder="مثال: شوكولاتة البندق الخاصة" class="w-full bg-white border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-amber-800 text-right" />
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-bold text-[#6d4c41]">الفئة</label>
+                  <select id="prod-category" required class="w-full bg-white border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-amber-800 text-right">
+                    <option value="شوكولاتة">شوكولاتة</option>
+                    <option value="كيك">كيك</option>
+                    <option value="تارت">تارت</option>
+                    <option value="حلويات شرقية">حلويات شرقية</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                  <label class="block text-xs font-bold text-[#6d4c41]">السعر التقديري (ج.م)</label>
+                  <input id="prod-price" type="number" required placeholder="مثال: 150" class="w-full bg-white border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-amber-800 text-right" />
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-xs font-bold text-[#6d4c41]">رابط صورة خارجي (أو اتركه فارغاً وارفع من جهازك)</label>
+                  <input id="prod-image" type="text" placeholder="رابط URL مباشر للصورة" class="w-full bg-white border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-amber-800 text-left" />
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-xs font-bold text-[#6d4c41]">أو ارفع ملف صورة مباشرة من جهازك</label>
+                <div class="flex items-center gap-2">
+                  <input id="prod-image-file" type="file" accept="image/*" class="flex-1 bg-white border border-[#6d4c41]/20 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-800 text-right cursor-pointer" />
+                  <button type="button" id="btn-upload-file" class="px-4 py-2 bg-[#6d4c41] hover:bg-[#3e2723] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer whitespace-nowrap">
+                    رفع الآن 📤
+                  </button>
+                </div>
+                <p id="upload-status-text" class="text-[10px] text-emerald-700 font-semibold mt-1 hidden">تم رفع الصورة وحفظها بنجاح!</p>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-xs font-bold text-[#6d4c41]">وصف دقيق للمنتج</label>
+                <textarea id="prod-desc" required rows="3" placeholder="مواصفات ونوع الحشوة وعدد القطع المتضمنة..." class="w-full bg-white border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-amber-800 text-right"></textarea>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-xs font-bold text-[#6d4c41]">المكونات الأساسية</label>
+                <input id="prod-ingredients" type="text" required placeholder="مثال: شوكولاتة بلجيكية، زبدة الكاكاو، بندق محمص، فانيليا" class="w-full bg-white border border-[#6d4c41]/20 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-amber-800 text-right" />
+              </div>
+
+              <button id="admin-product-submit-btn" type="submit" class="w-full py-3 bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold rounded-lg shadow transition-colors cursor-pointer">
+                تأكيد ونشر الصنف الجديد في قائمة المعروضات ✨
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SETTINGS MODAL -->
+    <!-- ========================================== -->
+    <div id="settings-modal" class="fixed inset-0 z-50 overflow-y-auto pointer-events-none" role="dialog" aria-modal="true">
+      <!-- Backdrop overlay -->
+      <div id="settings-modal-overlay" class="absolute inset-0 bg-[#3e2723]/40 backdrop-blur-sm opacity-0 transition-opacity duration-500"></div>
+
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div id="settings-modal-dialog" class="relative w-full max-w-md bg-white border border-[#6d4c41]/10 rounded-2xl shadow-2xl p-6 sm:p-8 transform scale-95 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] text-right flex flex-col">
+          
+          <!-- Close Button -->
+          <button
+            type="button"
+            id="close-settings-modal-btn"
+            class="absolute top-4 left-4 text-[#6d4c41]/60 hover:text-[#3e2723] hover:rotate-90 transition-transform duration-300 p-1"
+          >
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+
+          <h2 class="font-serif text-xl font-bold text-[#3e2723] mb-6 flex items-center justify-end gap-2 border-b border-[#6d4c41]/10 pb-2">
+            <span id="settings-title-lang">إعدادات الحساب واللغة</span>
+            <i data-lucide="settings" class="w-5 h-5 text-[#c5a059]"></i>
+          </h2>
+
+          <form id="form-settings" class="space-y-5">
+            <!-- Language Section -->
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-[#6d4c41]" id="settings-label-language">لغة التطبيق / App Language</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  id="lang-btn-ar"
+                  class="py-2.5 rounded-lg border text-xs font-bold transition-all cursor-pointer text-center"
+                >
+                  العربية
+                </button>
+                <button
+                  type="button"
+                  id="lang-btn-en"
+                  class="py-2.5 rounded-lg border text-xs font-bold transition-all cursor-pointer text-center"
+                >
+                  English
+                </button>
+              </div>
+            </div>
+
+            <!-- Profile Name -->
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-[#6d4c41]" id="settings-label-name">اسم الحساب الكامل</label>
+              <input
+                id="settings-name-input"
+                type="text"
+                required
+                placeholder="اكتب اسمك الجديد"
+                class="w-full bg-[#efebe9]/30 border border-[#6d4c41]/20 rounded-lg px-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#6d4c41]/40 text-right"
+              />
+            </div>
+
+            <!-- Profile Phone (Optional) -->
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-[#6d4c41]" id="settings-label-phone">رقم الهاتف</label>
+              <input
+                id="settings-phone-input"
+                type="text"
+                placeholder="رقم الهاتف للتواصل وتأكيد الطلبات"
+                class="w-full bg-[#efebe9]/30 border border-[#6d4c41]/20 rounded-lg px-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#6d4c41]/40 text-right"
+              />
+            </div>
+
+            <!-- Profile Address (Optional) -->
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-[#6d4c41]" id="settings-label-address">العنوان الافتراضي</label>
+              <input
+                id="settings-address-input"
+                type="text"
+                placeholder="العنوان بالتفصيل"
+                class="w-full bg-[#efebe9]/30 border border-[#6d4c41]/20 rounded-lg px-3 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#6d4c41]/40 text-right"
+              />
+            </div>
+
+            <button
+              type="submit"
+              id="settings-save-btn"
+              class="w-full py-3 bg-[#3e2723] hover:bg-[#6d4c41] text-white text-xs font-bold rounded-lg shadow transition-colors cursor-pointer"
+            >
+              حفظ التغييرات الجديدة ✨
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Shop Info Modal (Our Story, Location, Contact Us) -->
+    <div id="info-modal" class="fixed inset-0 z-50 overflow-y-auto pointer-events-none" role="dialog" aria-modal="true">
+      <div id="info-modal-overlay" class="absolute inset-0 bg-[#3e2723]/40 backdrop-blur-sm opacity-0 transition-opacity duration-500"></div>
+      
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div id="info-modal-dialog" class="relative w-full max-w-2xl bg-white border border-[#6d4c41]/10 rounded-2xl shadow-2xl p-6 sm:p-8 transform scale-95 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] text-right flex flex-col max-h-[85vh]">
+          
+          <!-- Close button -->
+          <button
+            id="close-info-modal-btn"
+            type="button"
+            class="absolute top-4 left-4 p-2 text-[#6d4c41]/60 hover:text-[#3e2723] hover:bg-[#efebe9]/50 rounded-full transition-all cursor-pointer"
+          >
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+
+          <!-- Tabs Header -->
+          <div class="flex border-b border-[#6d4c41]/10 pb-2 mb-6 gap-4 sm:gap-6 text-sm font-bold text-[#6d4c41]">
+            <button id="tab-btn-story" class="pb-2 border-b-2 border-transparent transition-all hover:text-[#3e2723] cursor-pointer">قصتنا</button>
+            <button id="tab-btn-location" class="pb-2 border-b-2 border-transparent transition-all hover:text-[#3e2723] cursor-pointer">الموقع</button>
+            <button id="tab-btn-contact" class="pb-2 border-b-2 border-transparent transition-all hover:text-[#3e2723] cursor-pointer">تواصل معنا</button>
+          </div>
+
+          <!-- Content Scroll Container -->
+          <div class="overflow-y-auto flex-1 space-y-6 pr-1 pl-2">
+            
+            <!-- Tab: Story -->
+            <div id="tab-content-story" class="hidden space-y-4">
+              <div class="text-center space-y-2 mb-4">
+                <i data-lucide="sparkles" class="w-8 h-8 text-[#c5a059] mx-auto animate-pulse"></i>
+                <h3 class="font-serif text-2xl font-extrabold text-[#3e2723]" id="story-title">قصتنا وعشقنا للحلويات</h3>
+                <p class="text-xs text-[#c5a059] tracking-wider uppercase font-bold">Artisanal Bakery & Confectionery</p>
+              </div>
+              <p class="text-sm text-[#6d4c41] leading-relaxed font-light text-justify" id="story-p1">
+                بدأت رحلة <strong>الطيبات</strong> في قلب شغفنا المتوارث بصناعة الحلويات والمخبوزات الفاخرة. لم تكن مجرد فكرة تجارية، بل كانت رؤية لتقديم قطع متميزة من السعادة تُصنع بكل حب وبأعلى جودة ممكنة. نختار مكوناتنا بعناية فائقة، بدءاً من حبات الكاكاو الغنية، والزبدة الطبيعية الطازجة، وحتى الفواكه المنتقاة بعناية.
+              </p>
+              <p class="text-sm text-[#6d4c41] leading-relaxed font-light text-justify" id="story-p2">
+                في مطبخنا، نجمع بين عراقة النكهات والتقنيات العصرية لنقدم لكم تجربة لا تُنسى في كل قضمة. كل كعكة، وكل قطعة تارت، وكل حبة شوكولاتة تحمل بصمتنا الخاصة وتعبّر عن هويتنا المتمثلة في الدقة والابتكار. نحن نؤمن بأن الحلويات ليست مجرد طعام، بل هي لغة للاحتفال والحب والترابط بين الناس.
+              </p>
+              <div class="grid grid-cols-3 gap-3 pt-4">
+                <div class="bg-[#efebe9]/40 p-3 rounded-lg text-center space-y-1">
+                  <span class="block text-lg font-bold text-[#3e2723]">١٠٠٪</span>
+                  <span class="text-[10px] text-[#6d4c41]" id="story-stat1">مكونات طبيعية</span>
+                </div>
+                <div class="bg-[#efebe9]/40 p-3 rounded-lg text-center space-y-1">
+                  <span class="block text-lg font-bold text-[#3e2723]">يومي</span>
+                  <span class="text-[10px] text-[#6d4c41]" id="story-stat2">تحضير طازج</span>
+                </div>
+                <div class="bg-[#efebe9]/40 p-3 rounded-lg text-center space-y-1">
+                  <span class="block text-lg font-bold text-[#3e2723]">حب</span>
+                  <span class="text-[10px] text-[#6d4c41]" id="story-stat3">شغف الصنعة</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab: Location -->
+            <div id="tab-content-location" class="hidden space-y-4">
+              <div class="text-center space-y-1 mb-4">
+                <i data-lucide="map-pin" class="w-8 h-8 text-[#c5a059] mx-auto"></i>
+                <h3 class="font-serif text-2xl font-extrabold text-[#3e2723]" id="location-title">موقعنا ومكان فرعنا</h3>
+                <p class="text-xs text-[#6d4c41]/80" id="location-subtitle">يسعدنا دائماً استقبالكم لزيارتنا واكتشاف المزيد من منتجاتنا</p>
+              </div>
+              
+              <!-- Map Container styled nicely to match our design -->
+              <div class="relative w-full h-64 rounded-xl overflow-hidden shadow-inner border border-[#6d4c41]/15 bg-[#efebe9]/40 flex items-center justify-center">
+                <div id="info-map" class="absolute inset-0 w-full h-full z-10" style="filter: sepia(0.5) hue-rotate(5deg) saturate(1.1) contrast(1.05);"></div>
+              </div>
+              
+              <div class="p-3 bg-[#efebe9]/30 rounded-lg flex items-start gap-2.5 text-right">
+                <i data-lucide="info" class="w-4 h-4 text-[#c5a059] shrink-0 mt-0.5"></i>
+                <p class="text-xs text-[#6d4c41] leading-relaxed" id="location-desc">
+                  <strong>عنوان الفرع الرئيسي:</strong> شارع الجمهورية، بجوار ساحة الشهداء، خلف مجمع المحاكم. نوفر خدمة توصيل سريعة ومميزة لكافة أنحاء المدينة.
+                </p>
+              </div>
+            </div>
+
+            <!-- Tab: Contact -->
+            <div id="tab-content-contact" class="hidden space-y-4">
+              <div class="text-center space-y-1 mb-2">
+                <i data-lucide="phone-call" class="w-8 h-8 text-[#c5a059] mx-auto animate-bounce"></i>
+                <h3 class="font-serif text-2xl font-extrabold text-[#3e2723]" id="contact-title">تواصل معنا</h3>
+                <p class="text-xs text-[#6d4c41]/80" id="contact-subtitle">يسعدنا تواصلكم معنا مباشرة عبر القنوات الرسمية التالية</p>
+              </div>
+
+              <!-- Contact Info Cards -->
+              <div class="space-y-3">
+                <!-- Phone Card -->
+                <div class="p-3.5 bg-[#efebe9]/40 rounded-xl border border-[#6d4c41]/10 flex items-center justify-between gap-4 text-right hover:border-[#6d4c41]/25 transition-all">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-[#3e2723] text-white flex items-center justify-center shrink-0 shadow-sm">
+                      <i data-lucide="phone" class="w-4 h-4"></i>
+                    </div>
+                    <div class="text-right">
+                      <h4 class="text-[11px] font-bold text-[#6d4c41]" id="contact-phone-label">اتصل بنا مباشرة</h4>
+                      <p class="text-xs font-extrabold text-[#3e2723] select-all tracking-wider font-mono">+201501776162</p>
+                    </div>
+                  </div>
+                  <a href="tel:+201501776162" id="call-link" class="px-3 py-1.5 bg-[#3e2723] hover:bg-[#6d4c41] text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow">
+                    اتصال 📞
+                  </a>
+                </div>
+
+                <!-- WhatsApp Card -->
+                <div class="p-3.5 bg-emerald-50/40 rounded-xl border border-emerald-500/10 flex items-center justify-between gap-4 text-right hover:border-emerald-500/25 transition-all">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                      <i data-lucide="message-square" class="w-4 h-4"></i>
+                    </div>
+                    <div class="text-right">
+                      <h4 class="text-[11px] font-bold text-emerald-800" id="contact-whatsapp-label">راسلنا على واتساب</h4>
+                      <p class="text-xs font-extrabold text-emerald-950 tracking-wider font-mono">+201501776162</p>
+                    </div>
+                  </div>
+                  <a href="https://wa.me/201501776162" id="whatsapp-link" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow">
+                    واتساب 💬
+                  </a>
+                </div>
+
+                <!-- Instagram Card -->
+                <div class="p-3.5 bg-pink-50/40 rounded-xl border border-pink-500/10 flex items-center justify-between gap-4 text-right hover:border-pink-500/25 transition-all">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                      <!-- Custom SVG for instagram to avoid any Lucide warning completely -->
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                      </svg>
+                    </div>
+                    <div class="text-right">
+                      <h4 class="text-[11px] font-bold text-pink-800" id="contact-instagram-label">تابعنا على إنستجرام</h4>
+                      <p class="text-xs font-extrabold text-pink-950 tracking-wide font-mono">@gemix_dev</p>
+                    </div>
+                  </div>
+                  <a href="https://www.instagram.com/gemix_dev/" id="insta-link" target="_blank" class="px-3 py-1.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow">
+                    متابعة 📸
+                  </a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 8. TOAST NOTIFICATION SEAL -->
+    <div 
+      id="toast-notification"
+      class="fixed bottom-6 left-6 z-50 pointer-events-none transition-all duration-500 ease-out translate-y-4 opacity-0"
+    >
+      <div class="bg-[#3e2723] text-white text-xs font-bold px-6 py-4 rounded-full shadow-2xl border border-[#6d4c41]/10 flex items-center gap-2.5 max-w-sm pointer-events-auto">
+        <div class="w-4 h-4 rounded-full bg-[#c5a059] flex items-center justify-center shrink-0">
+          <i data-lucide="check" class="w-2.5 h-2.5 text-[#3e2723]"></i>
+        </div>
+        <span id="toast-text"></span>
+      </div>
+    </div>
+
+    <!-- 9. FOOTER BRAND STATEMENT -->
+    <footer class="border-t border-[#6d4c41]/10 py-12 px-6 bg-[#efebe9]/10 text-center">
+      <div class="max-w-7xl mx-auto space-y-4">
+        <p class="font-serif text-lg font-bold text-[#3e2723]">الطيبات | حلويات يومية</p>
+        <p class="text-xs text-[#6d4c41]/80 max-w-md mx-auto leading-relaxed">
+          جميع الحقوق محفوظة © ٢٠٢٦ متجر الطيبات للحلويات. نسعى لتقديم حلويات مناسبة لكل بيت.
+        </p>
+        <div class="flex items-center justify-center gap-1">
+          <span class="w-1 h-1 rounded-full bg-[#c5a059]"></span>
+          <span class="w-1 h-1 rounded-full bg-[#c5a059]"></span>
+          <span class="w-1 h-1 rounded-full bg-[#c5a059]"></span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Main JavaScript Entry point (Vite handles bundling and hot-reloading) -->
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
